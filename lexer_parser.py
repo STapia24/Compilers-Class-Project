@@ -1,5 +1,12 @@
 import ply.yacc as yacc
 import ply.lex as lex
+from Structures.FunctionDirectory import *
+from Structures.QuadrupleGen import *
+from Structures.SemanticCube import *
+
+OperatorQueue = []
+OperandQueue = []
+TypesQueue = []
 
 reserved = {
     "program": "PROGRAM",
@@ -35,7 +42,6 @@ tokens = [
     "RBR",
     "COMMA",
     "SEMICOLON",
-#    "COLON",
     "PERIOD",
     "ID",
     "AND",
@@ -137,7 +143,7 @@ def t_error(t):
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
-    ('nonassoc', 'EQ', 'NEQ', 'LE', 'GE', 'LT', 'GT'),
+    ('left', 'EQ', 'NEQ', 'LE', 'GE', 'LT', 'GT'),
     ('left', 'PLUS', 'MINUS'),
     ('left', 'MULT', 'DIV'),
 )
@@ -146,7 +152,7 @@ precedence = (
 # program
 def p_program(p):
     """program : PROGRAM ID SEMICOLON var_dec func_dec main"""
-    p[0] = 1
+    p[0] = tuple[1:]
     print("Got to program")
 
     # main
@@ -248,7 +254,7 @@ def p_exp_dim_opt(p):
 
 # if_statement
 def p_if_statement(p):
-    """if_statement : IF LP exp RP block else"""
+    """if_statement : IF LP super_exp RP block else"""
     print("If statement")
 
 # else
@@ -259,7 +265,7 @@ def p_else(p):
 
 # while_statement
 def p_while_statement(p):
-    """while_statement : WHILE LP exp RP block"""
+    """while_statement : WHILE LP super_exp RP block"""
     print("While statement")
 
 # read statement
@@ -344,39 +350,33 @@ def p_func_block(p):
 
 # return
 def p_return(p):
-    """ return : RETURN LP exp RP SEMICOLON """
+    """ return : RETURN LP super_exp RP SEMICOLON """
     print("Returns something")
 
-# exp
+# super_exp
+def p_super_exp(p):
+    """ super_exp : exp relop exp
+    | exp
+    """
+    print("Found a super_exp")
+
+def p_relop(p):
+    """ relop : EQ
+    | GE 
+    | LE 
+    | GT 
+    | LT 
+    | NEQ 
+    | AND
+    | OR
+    """
+
 def p_exp(p):
-    """ exp : or_exp OR or_exp
-    | or_exp
-    """
-    print("Found an exp")
-
-def p_or_exp(p):
-    """ or_exp : and_exp AND and_exp
-    | and_exp
-    """
-    print("Found an or_exp")
-
-def p_and_exp(p):
-    """ and_exp : op_exp EQ op_exp
-    | op_exp GE op_exp
-    | op_exp LE op_exp
-    | op_exp GT op_exp
-    | op_exp LT op_exp
-    | op_exp NEQ op_exp
-    | op_exp
-    """
-    print("Found an and_exp")
-
-def p_op_exp(p):
-    """ op_exp : term PLUS term
+    """ exp : term PLUS term
     | term MINUS term
     | term
     """
-    print("Found an op_exp")
+    print("Found an exp")
 
 def p_term(p):
     """term : factor MULT factor
@@ -386,7 +386,7 @@ def p_term(p):
     print("Found a term")
 
 def p_factor(p):
-    """factor : LP exp RP
+    """factor : LP super_exp RP
     | constants
     | var
     | func_call
@@ -468,8 +468,6 @@ def parse_input_file(filename):
 
     # Lex and parse the input code
     lexer.input(input_code)
-#    for token in lexer:
-#        print(token)
 
     result = parser.parse(input_code, lexer=lexer)
     if result:

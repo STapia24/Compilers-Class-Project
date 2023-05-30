@@ -16,7 +16,7 @@ func void function1(int iVar){
     iVar = 7;
     cVar = 'h';
 
-    if(iVar > fVar && iVar < 12){
+    if((iVar > fVar) && (iVar < 12)){
         cVar = 'd';
     }
     else {
@@ -24,7 +24,7 @@ func void function1(int iVar){
     }
 
     iter = 0;
-    while(iter < 1 || iter != 0){
+    while((iter < 1) || (iter != 0)){
         iVar = iVar - 1;
         iter = iter + 1;
     }
