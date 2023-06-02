@@ -108,9 +108,6 @@ class SymbolTable:
     def operators(self):
         return self.__operators
 
-    def pending_jumps(self):
-        return self.__pending_jumps
-
     # Stacks of stacks used when false bottom is pushed into a stack
     def operands_stacks(self):
         return self.__operands_stacks

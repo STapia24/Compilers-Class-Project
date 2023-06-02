@@ -251,28 +251,66 @@ def p_var(p):
     p[0] = p[1]
     # print("Variable use")
 
-# exp_dim_opt
+# Exp_dim_opt
 def p_exp_dim_opt(p):
     """exp_dim_opt : LSB exp RSB
     | LSB exp RSB LSB exp RSB
     | empty"""
     # print("Dimensions when using variable")
 
-# if_statement
+# If_statement
 def p_if_statement(p):
-    """if_statement : IF LP super_exp RP block else"""
+    """if_statement : IF LP super_exp RP create_gotof block else update_pending_jump_1"""
     # print("If statement")
+
+# Create_gotof
+def p_create_gotof(p):
+    """create_gotof : """
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    createGotoFQuadIf(st, qg)
+
+# Update_pending_jump
+def p_update_pending_jump(p):
+    """update_pending_jump : """
+    qg = QuadrupleGen.get()
+    updatePendingJumpIf(qg)
+
+# Update_pending_jump_1
+def p_update_pending_jump_1(p):
+    """update_pending_jump_1 : """
+    qg = QuadrupleGen.get()
+    updatePendingJumpIf(qg, -1)
 
 # else
 def p_else(p):
-    """else : ELSE block
+    """else : create_goto ELSE block
     | empty"""
     # print("Else statement")
 
+# create_goto
+def p_create_goto(p):
+    """create_goto : update_pending_jump"""
+    qg = QuadrupleGen.get()
+    createGotoQuadIf(qg)
+
 # while_statement
 def p_while_statement(p):
-    """while_statement : WHILE LP super_exp RP block"""
+    """while_statement : WHILE LP super_exp RP create_gotof_while block update_pending_jump_while"""
     # print("While statement")
+
+# create_gotof_while
+def p_create_gotof_while(p):
+    """create_gotof_while : """
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    createGotoFQuadWhile(st, qg)
+
+# update_pending_jump_while
+def p_update_pending_jump_while(p):
+    """update_pending_jump_while : """
+    qg = QuadrupleGen.get()
+    updatePendingJumpWhile(qg)
 
 # read statement
 def p_read(p):
@@ -291,6 +329,7 @@ def p_constants(p):
     | CONST_FLOAT current_type_is_float
     | CONST_CHAR current_type_is_char"""
     # print("This are constants")
+    p[0] = p[1]
 
 # func_call
 def p_func_call(p):
@@ -500,8 +539,8 @@ def p_save_operand(p):
     save_operand :
     '''
     st = SymbolTable.get()
-    st.operands().push(st.current_id())
-    print("pushing:", st.current_id())
+    st.operands().push(p[-1])
+    print("pushing:", p[-1])
     st.op_types().push(st.current_type())
 
 def p_check_relop_stack(p):
@@ -609,5 +648,5 @@ def parse_input_file(filename):
     qg.print_quadruples()
 
 
-parse_input_file('./Tests/input.txt')
+parse_input_file('./Tests/if.txt')
 
