@@ -10,9 +10,14 @@ class QuadrupleGen:
         return QuadrupleGen.__instance
 
     def __init__(self):
-        self.__quadruples = []
-        self.__pendingJumps = []
-        self.__temp_counter = 0
+        if QuadrupleGen.__instance:
+            raise Exception(
+                "Quadruple Generator already declared, use 'QuadrupleGen.get()'")
+        else:
+            QuadrupleGen.__instance = self
+            self.__quadruples = []
+            self.__pendingJumps = []
+            self.__temp_counter = 0
 
     def generate_temp(self):
         temp = f"t{self.__temp_counter}"

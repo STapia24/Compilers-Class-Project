@@ -1,12 +1,14 @@
 import ply.yacc as yacc
 import ply.lex as lex
-from Structures.FunctionDirectory import *
 from Structures.QuadrupleGen import *
 from Structures.SemanticCube import *
+from Structures.SymbolTable import SymbolTable
+from Structures.CustomStack import push_op, pop_op
+from Structures.QuadActions import *
 
-OperatorQueue = []
-OperandQueue = []
-TypesQueue = []
+def initTableAndQuads():
+    SymbolTable()
+    QuadrupleGen()
 
 reserved = {
     "program": "PROGRAM",
@@ -163,7 +165,7 @@ def p_main(p):
 # block
 def p_block(p):
     """block : LBR statute statute1 RBR """
-    print("Found a block")
+    # print("Found a block")
 
 # func_dec
 def p_func_dec(p):
@@ -175,20 +177,21 @@ def p_func_dec(p):
 def p_param_opt(p):
     """param_opt : type_simple ID more_param_opt
     | empty"""
-    print("Got to param_opt")
+    # print("Got to param_opt")
 
 # more_param_opt
 def p_more_param_opt(p):
     """more_param_opt : COMMA type_simple ID more_param_opt
     | empty"""
-    print("Got to more_param_opt")
+    # print("Got to more_param_opt")
 
 # var_dec
 def p_var_dec(p):
-    """ var_dec : type_simple ID dim SEMICOLON var_dec
+    """ var_dec : type_simple ID save_id save_var dim SEMICOLON var_dec
     | type_complex ID complex_dec SEMICOLON
     | empty
     """
+    p[0] = tuple(p[1:])
     print("Declared a variable")
 
 # complex_dec
@@ -197,111 +200,113 @@ def p_complex_dec(p):
     complex_dec : COMMA ID complex_dec
     | empty
     """
-    print("Declared another complex type")
+    # print("Declared another complex type")
 
 # dim
 def p_dim(p):
     """dim : LSB CONST_INT RSB
     | LSB CONST_INT RSB LSB CONST_INT RSB
     | empty"""
-    print("Dimensions while declaring variable")
+    # print("Dimensions while declaring variable")
 
 # return_type
 def p_return_type(p):
     """return_type : type_simple
-    | VOID"""
+    | VOID save_type"""
+    p[0] = p[1]
     print("Returning a simple type or void")
 
 # type_simple
 def p_type_simple(p):
-    """type_simple : INT
-    | FLOAT
-    | CHAR"""
+    """type_simple : INT save_type
+    | FLOAT save_type
+    | CHAR save_type"""
+    p[0] = p[1]
     print("Found a simple type")
 
 # type_complex
 def p_type_complex(p):
     """type_complex : DATAFRAME"""
-    print("Found a dataframe")
+    # print("Found a dataframe")
 
 # assignation
 def p_assignation(p):
-    """assignation : var exp_dim_opt ASSIGN exp_or_func_assignation"""
-    print("Assignation")
+    """assignation : var assignation_var ASSIGN exp_or_func_assignation"""
+    # print("Assignation")
 
 # exp_or_func_assignation
 def p_exp_or_func_assignation(p):
     """exp_or_func_assignation : expression_assignation
     | func_call"""
-    print("Assignation of exp or function call")
+    # print("Assignation of exp or function call")
 
 # expression_assignation
 def p_expression_assignation(p):
-    """expression_assignation : exp SEMICOLON"""
-    print("Assignation of exp")
+    """expression_assignation : exp normal_assign SEMICOLON"""
+    # print("Assignation of exp")
 
 # var
 def p_var(p):
     """var : ID exp_dim_opt"""
-    print("Variable use")
+    # print("Variable use")
 
 # exp_dim_opt
 def p_exp_dim_opt(p):
     """exp_dim_opt : LSB exp RSB
     | LSB exp RSB LSB exp RSB
     | empty"""
-    print("Dimensions when using variable")
+    # print("Dimensions when using variable")
 
 # if_statement
 def p_if_statement(p):
     """if_statement : IF LP super_exp RP block else"""
-    print("If statement")
+    # print("If statement")
 
 # else
 def p_else(p):
     """else : ELSE block
     | empty"""
-    print("Else statement")
+    # print("Else statement")
 
 # while_statement
 def p_while_statement(p):
     """while_statement : WHILE LP super_exp RP block"""
-    print("While statement")
+    # print("While statement")
 
 # read statement
 def p_read(p):
     """read : READ LP var RP SEMICOLON"""
-    print("Read something")
+    # print("Read something")
 
 # print statement
 def p_print(p):
     """print : PRINT LP opt_string RP SEMICOLON
     | PRINT LP exp RP SEMICOLON"""
-    print("Prints something")
+    # print("Prints something")
 
 # constants
 def p_constants(p):
-    """constants : CONST_INT
-    | CONST_FLOAT
-    | CONST_CHAR"""
-    print("This are constants")
+    """constants : CONST_INT current_type_is_int
+    | CONST_FLOAT current_type_is_float
+    | CONST_CHAR current_type_is_char"""
+    # print("This are constants")
 
 # func_call
 def p_func_call(p):
     """func_call : ID LP opt_args RP SEMICOLON"""
-    print("Function called")
+    # print("Function called")
 
 # opt_args
 def p_opt_args(p):
     """opt_args : exp exp_args_more
     | empty"""
-    print("Arguments for a function call")
+    # print("Arguments for a function call")
 
 # exp_args_more
 def p_exp_args_more(p):
     """exp_args_more : COMMA exp exp_args_more
     | empty"""
-    print("More arguments for a function call")
+    # print("More arguments for a function call")
 
 # statements
 def p_statements(p):
@@ -313,7 +318,7 @@ def p_statements(p):
     | return
     | print
     | data_funcs"""
-    print("Called a statement")
+    # print("Called a statement")
 
 def p_data_funcs(p):
     """data_funcs : mean
@@ -324,38 +329,39 @@ def p_data_funcs(p):
     | hist
     | plot
     | sctplot"""
-    print("Found a data function")
+    p[0] = p[1]
+    # print("Found a data function")
 
 
 def p_opt_string(p):
     """opt_string : CONST_STRING"""
-    print("String found")    
+    # print("String found")    
 
 #statute1
 def p_statute1(p):
     """statute1 : statute statute1
     | empty"""
-    print("Jumped to statute1")
+    # print("Jumped to statute1")
 
 #statute
 def p_statute(p):
     """statute : statements statute1
     | empty"""
-    print("Found a statute")
+    # print("Found a statute")
 
 # func_block
 def p_func_block(p):
     """ func_block : LBR var_dec statute RBR """
-    print("A func_block")
+    # print("A func_block")
 
 # return
 def p_return(p):
     """ return : RETURN LP super_exp RP SEMICOLON """
-    print("Returns something")
+    # print("Returns something")
 
 # super_exp
 def p_super_exp(p):
-    """ super_exp : exp relop exp
+    """ super_exp : exp relop push_op exp check_relop_stack
     | exp
     """
     print("Found a super_exp")
@@ -370,81 +376,203 @@ def p_relop(p):
     | AND
     | OR
     """
+    p[0] = p[1]
 
 def p_exp(p):
-    """ exp : term PLUS term
-    | term MINUS term
-    | term
+    """ exp : term check_stack_exp PLUS push_op exp
+            | term check_stack_exp MINUS push_op exp
+            | term check_stack_exp
     """
+    p[0] = tuple(p[1:])
     print("Found an exp")
 
 def p_term(p):
-    """term : factor MULT factor
-    | factor DIV factor
-    | factor
+    """term : factor check_stack_term MULT push_op term
+            | factor check_stack_term DIV push_op term
+            | factor check_stack_term
     """
+    p[0] = tuple(p[1:])
     print("Found a term")
 
 def p_factor(p):
-    """factor : LP super_exp RP
-    | constants
-    | var
-    | func_call
+    """factor : LP push_op super_exp RP pop_op save_operand
+    | constants save_operand
+    | var save_operand
+    | func_call 
     """
+    p[0] = tuple(p[1:])
     print("Found a factor")
 
 def p_mean(p):
     """ mean : MEAN LP complex_var RP SEMICOLON """
     # Code to handle the mean calculation
-    print("Mean")
+    # print("Mean")
 
 def p_mode(p):
     """ mode : MODE LP complex_var RP SEMICOLON """
     # Code to handle the mode calculation
-    print("Mode")
+    # print("Mode")
 
 def p_median(p):
     """ median : MEDIAN LP complex_var RP SEMICOLON """
     # Code to handle the median calculation
-    print("Median")
+    # print("Median")
 
 def p_std(p):
     """ std : STD LP complex_var RP SEMICOLON """
     # Code to handle the standard deviation calculation
-    print("Standar Deviation")
+    # print("Standar Deviation")
 
 def p_variance(p):
     """ variance : VARIANCE LP complex_var RP SEMICOLON """
     # Code to handle the variance calculation
-    print("Variance")
+    # print("Variance")
 
 def p_hist(p):
     """ hist : HIST LP complex_var RP SEMICOLON """
     # Code to handle the histogram generation
-    print("Histogram")
+    # print("Histogram")
 
 def p_plot(p):
     """ plot : PLOT LP complex_var RP SEMICOLON """
     # Code to handle the plot generation
-    print("Plot")
+    # print("Plot")
 
 def p_sctplot(p):
     """ sctplot : SCTPLOT LP complex_var RP SEMICOLON """
     # Code to handle the scatter plot generation
-    print("Scatterplot")
+    # print("Scatterplot")
 
 # Complex variable use
 def p_complex_var(p):
     """ complex_var : ID
     | ID PERIOD"""
     # Code to handle complex variable reference
-    print("Complex var use")
+    # print("Complex var use")
 
 # epsilon
 def p_empty(p):
     """ empty : """
     pass
-    print("Got to an empty production")
+#    print("Got to an empty production")
+
+######### Semantic nodes functions #########
+def p_push_op(p):
+    '''
+    push_op :
+    '''
+    st = SymbolTable.get()
+    push_op(st, p[-1])
+
+def p_pop_op(p):
+    '''
+    pop_op :
+    '''
+    st = SymbolTable.get()
+    pop_op(st, p[-1])
+
+def p_save_id(p):
+    '''
+    save_id :
+    '''
+    st = SymbolTable.get()
+    print("The id is: ", p[-1])
+    st.set_curr_id(p[-1])
+
+def p_save_type(p):
+    '''
+    save_type : 
+    '''
+    st = SymbolTable.get()
+    print("The type is: ", p[-1])
+    st.set_curr_type(p[-1])
+
+def p_save_var(p):
+    '''
+    save_var : 
+    '''
+    st = SymbolTable.get()
+    st.save_var()
+    
+def p_save_operand(p):
+    '''
+    save_operand :
+    '''
+    st = SymbolTable.get()
+    st.operands().push(st.current_id())
+    print("pushing:", st.current_id())
+    st.op_types().push(st.current_type())
+
+def p_check_relop_stack(p):
+    '''
+    check_relop_stack :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    print(st.operands().top(), st.operators().top())
+    if st.operators().top() in ['>=', '<=', '>', '<', '!=', '==']:
+        operationsActions(st, qg)
+
+def p_check_stack_exp(p):
+    '''
+    check_stack_exp :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    if st.operators().top() == '+' or st.operators().top() == '-':
+        operationsActions(st, qg)
+
+def p_check_stack_term(p):
+    '''
+    check_stack_term :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    if st.operators().top() == '*' or st.operators().top() == '/':
+        operationsActions(st, qg)
+
+def p_normal_assign(p):
+    '''
+    normal_assign :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    normalAssignationActions(st, qg)
+
+def p_assignation_var(p):
+    '''
+    assignation_var :
+    '''
+    st = SymbolTable.get()
+    print("pushing:", st.current_id(), "as the var to assign")
+    st.var_to_assign().push(st.current_id())
+
+def p_current_type_is_int(p):
+    '''
+    current_type_is_int :
+    '''
+    st = SymbolTable.get()
+    st.set_curr_type('int')
+    st.set_curr_id(p[-1])
+    st.current_scope().add_var(st.current_id(), 'int', True)
+
+def p_current_type_is_float(p):
+    '''
+    current_type_is_float :
+    '''
+    st = SymbolTable.get()
+    st.set_curr_type('float')
+    st.set_curr_id(p[-1])
+    st.current_scope().add_var(st.current_id(), 'float', True)
+
+def p_current_type_is_char(p):
+    '''
+    current_type_is_char :
+    '''
+    st = SymbolTable.get()
+    st.set_curr_type('char')
+    st.set_curr_id(p[-1])
+    st.current_scope().add_var(st.current_id(), 'char', True)
 
 # Error rule for syntax errors
 def p_error(p):
@@ -475,7 +603,9 @@ def parse_input_file(filename):
     else:
         print("Parsing failed")
     print(result)
+    qg = QuadrupleGen.get()
+    qg.print_quadruples()
 
 
-parse_input_file('input.txt')
+parse_input_file('./Tests/input.txt')
 

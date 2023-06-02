@@ -11,7 +11,7 @@ dataframe dfVar;
 func void function1(int iVar){
     float varF;
     
-    varF = 2;
+    varF = 2.0;
     fVar = 5.3;
     iVar = 7;
     cVar = 'h';
