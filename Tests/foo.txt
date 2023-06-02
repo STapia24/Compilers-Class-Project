@@ -1,0 +1,11 @@
+program test2;
+
+int iVar;
+float fVar;
+
+main() {
+
+    iVar = 123;
+    fVar = 456.789;
+
+};

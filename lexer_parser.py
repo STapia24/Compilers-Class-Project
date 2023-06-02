@@ -188,7 +188,7 @@ def p_more_param_opt(p):
 # var_dec
 def p_var_dec(p):
     """ var_dec : type_simple ID save_id save_var dim SEMICOLON var_dec
-    | type_complex ID complex_dec SEMICOLON
+    | type_complex ID complex_dec SEMICOLON var_dec
     | empty
     """
     p[0] = tuple(p[1:])
@@ -248,6 +248,7 @@ def p_expression_assignation(p):
 # var
 def p_var(p):
     """var : ID exp_dim_opt"""
+    p[0] = p[1]
     # print("Variable use")
 
 # exp_dim_opt
@@ -544,6 +545,7 @@ def p_assignation_var(p):
     assignation_var :
     '''
     st = SymbolTable.get()
+    st.set_curr_id(p[-1])
     print("pushing:", st.current_id(), "as the var to assign")
     st.var_to_assign().push(st.current_id())
 
