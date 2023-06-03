@@ -36,7 +36,7 @@ class QuadrupleGen:
     def generate_quadruple(self, operator, operand1, operand2, result):
         quadruple = [operator, operand1, operand2, result]
         self.__quadruples.append(quadruple)
-        print(f"-> Generated quadruple: {quadruple}")
+        # print(f"-> Generated quadruple: {quadruple}")
         return quadruple
 
 

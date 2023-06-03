@@ -1,14 +1,24 @@
 program whileTest;
 
 float A;
+float B;
+int C;
 int iter;
 
 main(){
-     
+    read(C);
     A = 0.0; 
     iter = 0;
     while(iter < 3){
-    iter = iter + 1;
-    A = A + 0.1;
+        iter = iter + 1;
+        A = A + 1.0;
+        B = A - 0.2;
     }
+    B = A;
+
+    while(iter > 8){
+        B = A + 0.7;
+        B = 7.0 - B;
+    }
+    A = B + 2.0 * 3;
 };

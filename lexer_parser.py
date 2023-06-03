@@ -155,12 +155,12 @@ precedence = (
 def p_program(p):
     """program : PROGRAM ID SEMICOLON var_dec func_dec main"""
     p[0] = tuple[1:]
-    print("Got to program")
+  #  print("Got to program")
 
     # main
 def p_main(p):
     """main : MAIN LP RP block SEMICOLON"""
-    print("Got into main")
+    #print("Got into main")
 
 # block
 def p_block(p):
@@ -171,7 +171,7 @@ def p_block(p):
 def p_func_dec(p):
     """func_dec : FUNC return_type ID LP param_opt RP func_block func_dec
     | empty"""
-    print("Function declared")
+    #print("Function declared")
 
 # param_opt
 def p_param_opt(p):
@@ -192,7 +192,7 @@ def p_var_dec(p):
     | empty
     """
     p[0] = tuple(p[1:])
-    print("Declared a variable")
+    #print("Declared a variable")
 
 # complex_dec
 def p_complex_dec(p):
@@ -214,7 +214,7 @@ def p_return_type(p):
     """return_type : type_simple
     | VOID save_type"""
     p[0] = p[1]
-    print("Returning a simple type or void")
+    #print("Returning a simple type or void")
 
 # type_simple
 def p_type_simple(p):
@@ -222,7 +222,7 @@ def p_type_simple(p):
     | FLOAT save_type
     | CHAR save_type"""
     p[0] = p[1]
-    print("Found a simple type")
+#    print("Found a simple type")
 
 # type_complex
 def p_type_complex(p):
@@ -263,66 +263,28 @@ def p_if_statement(p):
     """if_statement : IF LP super_exp RP create_gotof block else update_pending_jump_1"""
     # print("If statement")
 
-# Create_gotof
-def p_create_gotof(p):
-    """create_gotof : """
-    st = SymbolTable.get()
-    qg = QuadrupleGen.get()
-    createGotoFQuadIf(st, qg)
-
-# Update_pending_jump
-def p_update_pending_jump(p):
-    """update_pending_jump : """
-    qg = QuadrupleGen.get()
-    updatePendingJumpIf(qg)
-
-# Update_pending_jump_1
-def p_update_pending_jump_1(p):
-    """update_pending_jump_1 : """
-    qg = QuadrupleGen.get()
-    updatePendingJumpIf(qg, -1)
-
 # else
 def p_else(p):
     """else : create_goto ELSE block
     | empty"""
     # print("Else statement")
 
-# create_goto
-def p_create_goto(p):
-    """create_goto : update_pending_jump"""
-    qg = QuadrupleGen.get()
-    createGotoQuadIf(qg)
-
 # while_statement
 def p_while_statement(p):
     """while_statement : WHILE LP super_exp RP create_gotof_while block update_pending_jump_while"""
     # print("While statement")
 
-# create_gotof_while
-def p_create_gotof_while(p):
-    """create_gotof_while : """
-    st = SymbolTable.get()
-    qg = QuadrupleGen.get()
-    createGotoFQuadWhile(st, qg)
-
-# update_pending_jump_while
-def p_update_pending_jump_while(p):
-    """update_pending_jump_while : """
-    qg = QuadrupleGen.get()
-    updatePendingJumpWhile(qg)
-
 # read statement
 def p_read(p):
-    """read : READ LP var RP SEMICOLON"""
+    """read : READ LP var read_quad RP SEMICOLON"""
     # print("Read something")
 
 # print statement
 def p_print(p):
-    """print : PRINT LP opt_string RP SEMICOLON
-    | PRINT LP exp RP SEMICOLON"""
+    """print : PRINT LP CONST_STRING print_quad RP SEMICOLON
+    | PRINT LP exp print_quad RP SEMICOLON"""
     # print("Prints something")
-
+ 
 # constants
 def p_constants(p):
     """constants : CONST_INT current_type_is_int
@@ -372,11 +334,6 @@ def p_data_funcs(p):
     p[0] = p[1]
     # print("Found a data function")
 
-
-def p_opt_string(p):
-    """opt_string : CONST_STRING"""
-    # print("String found")    
-
 #statute1
 def p_statute1(p):
     """statute1 : statute statute1
@@ -404,7 +361,7 @@ def p_super_exp(p):
     """ super_exp : exp relop push_op exp check_relop_stack
     | exp
     """
-    print("Found a super_exp")
+   # print("Found a super_exp")
 
 def p_relop(p):
     """ relop : EQ
@@ -424,7 +381,7 @@ def p_exp(p):
             | term check_stack_exp
     """
     p[0] = tuple(p[1:])
-    print("Found an exp")
+  #  print("Found an exp")
 
 def p_term(p):
     """term : factor check_stack_term MULT push_op term
@@ -432,7 +389,7 @@ def p_term(p):
             | factor check_stack_term
     """
     p[0] = tuple(p[1:])
-    print("Found a term")
+    #print("Found a term")
 
 def p_factor(p):
     """factor : LP push_op super_exp RP pop_op save_operand
@@ -441,7 +398,7 @@ def p_factor(p):
     | func_call 
     """
     p[0] = tuple(p[1:])
-    print("Found a factor")
+    #print("Found a factor")
 
 def p_mean(p):
     """ mean : MEAN LP complex_var RP SEMICOLON """
@@ -516,7 +473,7 @@ def p_save_id(p):
     save_id :
     '''
     st = SymbolTable.get()
-    print("The id is: ", p[-1])
+    # print("The id is: ", p[-1])
     st.set_curr_id(p[-1])
 
 def p_save_type(p):
@@ -524,7 +481,7 @@ def p_save_type(p):
     save_type : 
     '''
     st = SymbolTable.get()
-    print("The type is: ", p[-1])
+    #print("The type is: ", p[-1])
     st.set_curr_type(p[-1])
 
 def p_save_var(p):
@@ -540,7 +497,7 @@ def p_save_operand(p):
     '''
     st = SymbolTable.get()
     st.operands().push(p[-1])
-    print("pushing:", p[-1])
+    #print("pushing:", p[-1])
     st.op_types().push(st.current_type())
 
 def p_check_relop_stack(p):
@@ -549,7 +506,7 @@ def p_check_relop_stack(p):
     '''
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
-    print(st.operands().top(), st.operators().top())
+    #print(st.operands().top(), st.operators().top())
     if st.operators().top() in ['>=', '<=', '>', '<', '!=', '==']:
         operationsActions(st, qg)
 
@@ -585,7 +542,7 @@ def p_assignation_var(p):
     '''
     st = SymbolTable.get()
     st.set_curr_id(p[-1])
-    print("pushing:", st.current_id(), "as the var to assign")
+    #print("pushing:", st.current_id(), "as the var to assign")
     st.var_to_assign().push(st.current_id())
 
 def p_current_type_is_int(p):
@@ -614,6 +571,65 @@ def p_current_type_is_char(p):
     st.set_curr_type('char')
     st.set_curr_id(p[-1])
     st.current_scope().add_var(st.current_id(), 'char', True)
+
+# create_goto
+def p_create_goto(p):
+    """create_goto : update_pending_jump"""
+    qg = QuadrupleGen.get()
+    createGotoQuadIf(qg)
+
+# Create_gotof
+def p_create_gotof(p):
+    """create_gotof : """
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    createGotoFQuadIf(st, qg)
+
+# Update_pending_jump
+def p_update_pending_jump(p):
+    """update_pending_jump : """
+    qg = QuadrupleGen.get()
+    updatePendingJumpIf(qg)
+
+# Update_pending_jump_1
+def p_update_pending_jump_1(p):
+    """update_pending_jump_1 : """
+    qg = QuadrupleGen.get()
+    updatePendingJumpIf(qg)
+
+# create_gotof_while
+def p_create_gotof_while(p):
+    """create_gotof_while : """
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    createGotoFQuadWhile(st, qg)
+
+# update_pending_jump_while
+def p_update_pending_jump_while(p):
+    """update_pending_jump_while : """
+    qg = QuadrupleGen.get()
+    updatePendingJumpWhile(qg)
+
+def p_read_quad(p):
+    '''
+    read_quad :
+    '''
+    qg = QuadrupleGen.get()
+    qg.generate_quadruple('read', '', '', p[-1])
+    
+
+
+def p_print_quad(p):
+    '''
+    print_quad :
+    '''
+    writeVar = ''
+    if type(p[-1]) == str:
+        writeVar = p[-1]
+    else:
+        writeVar = flattenData(p[-1])
+    qg = QuadrupleGen.get()
+    qg.generate_quadruple('print', '', '', writeVar)
 
 # Error rule for syntax errors
 def p_error(p):
@@ -648,5 +664,5 @@ def parse_input_file(filename):
     qg.print_quadruples()
 
 
-parse_input_file('./Tests/if.txt')
+parse_input_file('./Tests/while.txt')
 

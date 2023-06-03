@@ -9,8 +9,10 @@ main(){
     
     if (A > B) {
         A = 2;
+        B = B + 3;
     } else {
         B = 4;
+        A = A + 7;
     }
 
     A = A + B;

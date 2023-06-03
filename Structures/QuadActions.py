@@ -33,14 +33,14 @@ def operationsActions(st, qg):
     qg.generate_quadruple(op, lOp, rOp, temp_var)
     st.operands().push(temp_var)
     st.op_types().push(resultType)
-    print("pushed:", {temp_var}, "it's type is", {resultType})
+    # print("pushed:", {temp_var}, "it's type is", {resultType})
 
 def normalAssignationActions(st, qg):
     rOp = ''
     lOp = st.operands().pop()
     lType = st.op_types().pop()
     op = '='
-    print("This is the var to assign:", st.var_to_assign().top())
+    # print("This is the var to assign:", st.var_to_assign().top())
     resultVar = st.var_to_assign().pop()
     resultVarType = st.current_scope().get_var_from_id(resultVar).var_type()
     if resultVarType != lType:
@@ -54,13 +54,13 @@ def functionAssignationActions(st, qg):
 
 #####################
 # IF
-# Evaluación de expresión Booleana (> x y tb)
-# (gotof, 'tb' , '', salto_pendiente) -> Quad falso
-# (+, i, x, t99)
+# Boolean expresion eval // ex. (>, x, y, tb)
+# (gotof, 'tb' , '', pending_jump) -> false jump quad
+# if block
 # (goto '', '', salto_pendiente) -> final
-# (else)
-#  Quad falso
-#  Código dentro del else
+#  ELSE
+#  false jump quad
+#  else block
 #  final
 
 def createGotoFQuadIf(st, qg):
@@ -81,17 +81,24 @@ def createGotoQuadIf(qg):
     # Push goto quad to pending jumps stack
     qg.add_pending_jump(goto_quad)
 
-def updatePendingJumpIf(qg, offset=0):
+def updatePendingJumpIf(qg):
     # Update the goto or gotof in the pending jumps stack
     pending_goto = qg.pending_jumps().pop()
-    pending_goto[3] = len(qg.quadruples()) + 1 + offset
+    goto_type = pending_goto[0]
+
+    if goto_type == 'goto':
+        pending_goto[3] = len(qg.quadruples())
+    else:
+        pending_goto[3] = len(qg.quadruples()) + 1
+        
 
 #######################
 # WHILE
-# Evaluación de expresión Booleana (>, x, y, t3) = Quad inicial
-# (gotof, 'tb' , '', salto_pendiente) -> Quad
-# Codigo dentro del while
-# goto Quad inicial
+# Boolean expresion eval // ex. (>, x, y, tb) = initial quad
+# (gotof, 'tb' , '', pending_jump) -> false jump quad
+# While block
+# goto initial quad
+#
 
 def whileStatementActions(st, qg):
     resulting_type = st.op_types().pop()
@@ -116,12 +123,23 @@ def createGotoFQuadWhile(st, qg):
     # Push gotof quad to pending jumps stack
     qg.add_pending_jump(gotof_quad)
 
-def updatePendingJumpWhile(qg, offset=-1):
+def updatePendingJumpWhile(qg):
     # Update the gotof in the pending jumps stack
     pending_goto = qg.pending_jumps().pop()
 
     # Search for pending_goto in the quadruples and get its index
     index = qg.quadruples().index(pending_goto) - 1
     # Generate goto quad
-    goto_quad = qg.generate_quadruple('goto', '', '', index)
-    pending_goto[3] = len(qg.quadruples()) + 1 + offset
+    qg.generate_quadruple('goto', '', '', index)
+    pending_goto[3] = len(qg.quadruples())
+
+def flattenData(data):
+    if isinstance(data, tuple):
+        if len(data) == 0:
+            return ()
+        else:
+            return flattenData(data[0]) + flattenData(data[1:])
+    else:
+        if data == None:
+            return ()
+        return (data,)
