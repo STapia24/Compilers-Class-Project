@@ -1,16 +1,16 @@
 
 
 class Variable:
-    def __init__(self, name, var_type):
+    def __init__(self, name, varType):
         self.__name = name
-        self.__type = var_type
+        self.__type = varType
         self.__value = None
         self.__dims = None
 
     def name(self):
         return self.__name
 
-    def var_type(self):
+    def varType(self):
         return self.__type
 
     def value(self):
@@ -46,7 +46,7 @@ class Variable:
         else:
             raise Exception(f'Trying to access one dimension variable: \'{self.__name}\' as a two dimensioned variable')
 
-    def get_size(self):
+    def getSize(self):
         # Returns the amount of memory spaces needed
         dims = self.dims()
         if not dims:

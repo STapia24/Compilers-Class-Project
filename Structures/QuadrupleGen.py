@@ -16,33 +16,37 @@ class QuadrupleGen:
         else:
             QuadrupleGen.__instance = self
             self.__quadruples = []
-            self.__pending_jumps = []
-            self.__temp_counter = 0
+            self.__pendingJumps = []
+            self.__tempCounter = 0
 
     def quadruples(self):
         return self.__quadruples
     
-    def pending_jumps(self):
-        return self.__pending_jumps
+    def pendingJumps(self):
+        return self.__pendingJumps
     
-    def temp_counter(self):
+    def tempCounter(self):
         return self
     
-    def generate_temp(self):
-        temp = f"t{self.__temp_counter}"
-        self.__temp_counter += 1
+    def generateTemp(self):
+        temp = f"t{self.__tempCounter}"
+        self.__tempCounter += 1
         return temp
 
-    def generate_quadruple(self, operator, operand1, operand2, result):
-        quadruple = [operator, operand1, operand2, result]
-        self.__quadruples.append(quadruple)
-        # print(f"-> Generated quadruple: {quadruple}")
+    def generateQuadruple(self, operator, operand1, operand2, result, addQuad=True):
+        if addQuad:
+            quadruple = [operator, operand1, operand2, result]
+            self.__quadruples.append(quadruple)
+            print(f"-> Generated and added quadruple: {quadruple}")
+        else:
+            quadruple = [operator, operand1, operand2, result]
+            print(f"-> Generated quadruple: {quadruple}")
         return quadruple
 
 
-    def print_quadruples(self):
+    def printQuadruples(self):
         for i, quad in enumerate(self.__quadruples):
             print(f"{i}: {quad}")
 
-    def add_pending_jump(self, jump):
-        self.__pending_jumps.append(jump)
+    def addPendingJump(self, jump):
+        self.__pendingJumps.append(jump)

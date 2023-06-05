@@ -7,7 +7,7 @@ E = 'err'
 # Some values are repeated for faster search time, instead of checking for permutations
 # it will find the permutation in the cube
 
-def get_cube():
+def getCube():
     # This is a dictionary of dicionaries where we have I, F, C and B as keys for 
     # the first and second sets of dictionaries and then the operators as the third key
     cube = {}
@@ -244,3 +244,15 @@ def get_cube():
     cube[B][B]['!='] = B
 
     return cube
+
+def checkTypes(leftOp, rightOp, operator):
+        # Uses semantic cube to match types
+        cube = getCube()
+        try:
+            res = cube[leftOp][rightOp][operator]
+            if res == 'error':
+                raise Exception("Type Mismatch")
+            return res
+        except Exception as err:
+            raise Exception(
+                f'ERROR: Operands might not exist.\nLeft op type: {leftOp}\nRight op type: {rightOp}\nOperator: {operator}\nError: {err}')

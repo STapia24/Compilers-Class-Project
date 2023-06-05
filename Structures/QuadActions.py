@@ -1,138 +1,211 @@
-from Structures.SemanticCube import get_cube
+from Structures.SemanticCube import checkTypes
+from Structures.FunctionDir import *
 
 
 # All actions that lead to quadruple generating are to be
 # found in this file, this is to make the lexer_parser code
 # look a little bit cleaner
 
+############ Main Handling ############
 
-def checkTypes(left_op, right_op, operator):
-        # Uses semantic cube to match types
-        cube = get_cube()
-        try:
-            res = cube[left_op][right_op][operator]
-            if res == 'error':
-                raise Exception("Type Mismatch")
-            return res
-        except Exception as err:
-            raise Exception(
-                f'ERROR: Operands might not exist.\nLeft op type: {left_op}\nRight op type: {right_op}\nOperator: {operator}\nError: {err}')
+def saveMainQuad(qg):
+    mainQuad = qg.generateQuadruple('goto', '', '', '')
+    qg.addPendingJump(mainQuad)
+
+def solveMainQuad(qg):
+    mainQuad = qg.pendingJumps().pop()
+    mainQuad[3] = len(qg.quadruples())
+
+
+############ Var or constant assignations ############
 
 def operationsActions(st, qg):
     # Get operands and types involved
     rOp = st.operands().pop()
-    rType = st.op_types().pop()
+    rType = st.opTypes().pop()
     lOp = st.operands().pop()
-    lType = st.op_types().pop()
+    lType = st.opTypes().pop()
     op = st.operators().pop()
     # Check typing
     resultType = checkTypes(lType, rType, op)
     # Create temporal var
-    temp_var = qg.generate_temp()
+    tempVar = qg.generateTemp()
     # Generate quad and store resulting operands and type in the operands and op_types stacks
-    qg.generate_quadruple(op, lOp, rOp, temp_var)
-    st.operands().push(temp_var)
-    st.op_types().push(resultType)
+    qg.generateQuadruple(op, lOp, rOp, tempVar)
+    st.operands().push(tempVar)
+    st.opTypes().push(resultType)
     # print("pushed:", {temp_var}, "it's type is", {resultType})
 
 def normalAssignationActions(st, qg):
     rOp = ''
     lOp = st.operands().pop()
-    lType = st.op_types().pop()
+    lType = st.opTypes().pop()
     op = '='
     # print("This is the var to assign:", st.var_to_assign().top())
-    resultVar = st.var_to_assign().pop()
-    resultVarType = st.current_scope().get_var_from_id(resultVar).var_type()
+    resultVar = st.varToAssign().pop()
+    resultVarType = st.currentScope().getVarFromId(resultVar).varType()
     if resultVarType != lType:
          raise Exception(
               f'ERROR: Type mismatch during variable assignation \n {resultVar} was expecting: {resultVarType} and recieved: {lOp}: {lType}')
-    qg.generate_quadruple(op, lOp, rOp, resultVar)
+    qg.generateQuadruple(op, lOp, rOp, resultVar)
 
-def functionAssignationActions(st, qg):
-    return
+############ Function call assignation ############
 
+###############################################################
+# Function Call
+# (ERA, '', '', funcName) 
+# solve params // ex. (+, A, B, tx)
+# (PARAM, tx, '', Parameter#) -> Repeat for each parameter
+# (GOSUB, '', '', funcName)
+# ENDFUNC
+###############################################################
 
-#####################
+def functionAssignationActions(st, qg, params):
+    resultVar = st.varToAssign().pop()
+    resultVarType = st.currentScope().getVarFromId(resultVar).varType()
+    funcId = params[-1][0]
+    funcReturnType = st.currentScope().getFuncFromId(funcId).returnType()
+    if resultVarType != funcReturnType:
+        raise Exception(
+            f'Problem while assigning variable {resultVar}: types do not match.\nVariable to assign: {resultVar}\nFunction: {funcId}\nFunction return type: {funcReturnType}')
+    qg.generateQuad('FASSGN', resultVar, '', funcId)
+
+def paramAssignQuads(st, qg):
+    funcName = st.currentParams().pop(0)
+    paramValues = st.currentParams()
+    function = st.currentScope().getFuncFromId(funcName)
+    # Gets parameter names
+    paramNames = []
+    paramsList = function.params()
+    for param in paramsList:
+        paramNames.append(param[1])
+    # For each parameter does type check then creates the param quadruple (PARAM, value, '', varName)
+    for i in range(len(paramNames)):
+        leftType = st.currentScope().getVarFromId(paramValues[i]).varType()
+        rightParams = getParams(funcName)
+        rightType = None
+        for param in rightParams:
+            if param[1] == paramNames[i]:
+                rightType = param[0]
+        if leftType != rightType:
+            raise Exception(
+                f'Type mismatch: expected \'{rightType}\' parameter but received \'{leftType}\'')
+        qg.generateQuad('PARAM', paramValues[i], '', paramNames[i])
+
+def gosubJump(st, qg):
+    funcJump = st.pendingJumps().pop()
+    qg.addPendingJump(funcJump)
+
+def setReturn(st, qg):
+    functionType = st.currentScope().getFuncFromId(st.currentScopeName()).returnType()
+    varType = st.currentScope().getVarFromId(st.operands().top()).varType()
+    if functionType != varType:
+        raise Exception(f'Problem while returning value for function \'{st.currentScopeName()}\': types do not match.\nFunction type: {functionType}\nVariable type: {varType}')
+    qg.generateQuad('RETURN', '', '', st.operands().top())
+    setReturnVarId(st.currentScopeName(), st.operands().pop())
+    qg.generateQuad('GOTOENDFUNC', '', '', '')
+
+def saveFuncCallOp(st):
+    # Saves function return variable in operands Stack
+    st.operands().push(getReturnVarId(st.currentScopeName()))
+    # Saves return var as current
+    currentVar = st.currentScope().getVarFromID(getReturnVarId(st.currentScopeName()))
+    # Saves return var type in opTypes Stack
+    st.opTypes().push(currentVar.varType())
+
+############ Non-linear Statements ############
+
+###############################################################
 # IF
 # Boolean expresion eval // ex. (>, x, y, tb)
-# (gotof, 'tb' , '', pending_jump) -> false jump quad
+# (gotof, 'tb' , '', pendingJump) -> false jump quad
 # if block
-# (goto '', '', salto_pendiente) -> final
+# (goto '', '', pendingJump) -> final
 #  ELSE
-#  false jump quad
+#  solve false jump quad
 #  else block
-#  final
+#  solve final pendingJump
+###############################################################
 
 def createGotoFQuadIf(st, qg):
-    resulting_type = st.op_types().pop()
-    if resulting_type != 'bool':
+    resultingType = st.opTypes().pop()
+    if resultingType != 'bool':
         raise Exception(
-            f'ERROR: Type mismatch during if condition evaluation, expected bool, recieved: {resulting_type}')
+            f'ERROR: Type mismatch during if condition evaluation, expected bool, recieved: {resultingType}')
     
     # Generate gotof quad
-    gotof_quad = qg.generate_quadruple('gotof', st.operands().pop(), '', '')
+    gotofQuad = qg.generateQuadruple('gotof', st.operands().pop(), '', '')
     # Push gotof quad to pending jumps stack
-    qg.add_pending_jump(gotof_quad)
+    qg.addPendingJump(gotofQuad)
 
 def createGotoQuadIf(qg):
     # Generate goto quad
-    goto_quad = qg.generate_quadruple('goto', '', '', '')
+    gotoQuad = qg.generateQuadruple('goto', '', '', '')
     # updatePendingJump(qg)
     # Push goto quad to pending jumps stack
-    qg.add_pending_jump(goto_quad)
+    qg.addPendingJump(gotoQuad)
 
 def updatePendingJumpIf(qg):
     # Update the goto or gotof in the pending jumps stack
-    pending_goto = qg.pending_jumps().pop()
-    goto_type = pending_goto[0]
+    pendingGoto = qg.pendingJumps().pop()
+    gotoType = pendingGoto[0]
 
-    if goto_type == 'goto':
-        pending_goto[3] = len(qg.quadruples())
+    if gotoType == 'goto':
+        pendingGoto[3] = len(qg.quadruples())
     else:
-        pending_goto[3] = len(qg.quadruples()) + 1
+        pendingGoto[3] = len(qg.quadruples()) + 1
         
 
-#######################
+#####################################################################
 # WHILE
 # Boolean expresion eval // ex. (>, x, y, tb) = initial quad
-# (gotof, 'tb' , '', pending_jump) -> false jump quad
+# (gotof, 'tb' , '', pendingJump) -> false jump quad
 # While block
-# goto initial quad
-#
+# create goto initial quad
+# solve false jump
+######################################################################
 
 def whileStatementActions(st, qg):
-    resulting_type = st.op_types().pop()
-    if resulting_type != 'bool':
+    resultingType = st.opTypes().pop()
+    if resultingType != 'bool':
         raise Exception(
-            f'ERROR: Type mismatch during if statement evaluation, expected bool, recieved: {resulting_type}')
+            f'ERROR: Type mismatch during if statement evaluation, expected bool, recieved: {resultingType}')
     
     else:
-        gotof_quad = qg.generate_quadruple('gotof', st.operands().pop(), '', '')
+        gotofQuad = qg.generateQuadruple('gotof', st.operands().pop(), '', '')
         # Push gotof quad to pending jumps stack
-        qg.add_pending_jump(gotof_quad)
-        qg.quadruples().append(gotof_quad)
+        qg.addPendingJump(gotofQuad)
+        qg.quadruples().append(gotofQuad)
 
 def createGotoFQuadWhile(st, qg):
-    resulting_type = st.op_types().pop()
-    if resulting_type != 'bool':
+    resultingType = st.opTypes().pop()
+    if resultingType != 'bool':
         raise Exception(
-            f'ERROR: Type mismatch during while condition evaluation, expected bool, recieved: {resulting_type}')
+            f'ERROR: Type mismatch during while condition evaluation, expected bool, recieved: {resultingType}')
     
     # Generate gotof quad
-    gotof_quad = qg.generate_quadruple('gotof', st.operands().pop(), '', '')
+    gotofQuad = qg.generateQuadruple('gotof', st.operands().pop(), '', '')
     # Push gotof quad to pending jumps stack
-    qg.add_pending_jump(gotof_quad)
+    qg.addPendingJump(gotofQuad)
 
 def updatePendingJumpWhile(qg):
     # Update the gotof in the pending jumps stack
-    pending_goto = qg.pending_jumps().pop()
+    pendingGoto = qg.pendingJumps().pop()
 
-    # Search for pending_goto in the quadruples and get its index
-    index = qg.quadruples().index(pending_goto) - 1
+    # Search for pendingGoto in the quadruples and get its index
+    index = qg.quadruples().index(pendingGoto) - 1
     # Generate goto quad
-    qg.generate_quadruple('goto', '', '', index)
-    pending_goto[3] = len(qg.quadruples())
+    qg.generateQuadruple('goto', '', '', index)
+    pendingGoto[3] = len(qg.quadruples())
 
+
+
+# Missing array actions
+
+
+################# Reusable functions #################
+
+# Used to flatten tuples of tuples recursively
 def flattenData(data):
     if isinstance(data, tuple):
         if len(data) == 0:
@@ -143,3 +216,10 @@ def flattenData(data):
         if data == None:
             return ()
         return (data,)
+    
+def isConstant(operand):
+    # Checks for a boolean constant
+    if operand == 'True' or operand == 'False':
+        return True
+    # Checks for a numeric constants
+    return type(operand) == int or type(operand) == float

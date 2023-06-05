@@ -1,0 +1,18 @@
+program functionsTest;
+
+int A;
+float B;
+
+func void test1(int C, float B){
+    int H;
+    int A;
+
+    A = 7;
+    H = A + C;
+    B = 0.0;
+}
+
+main(){
+    A = 3;
+    test1(A, B);
+}

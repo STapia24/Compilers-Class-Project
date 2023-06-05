@@ -4,13 +4,13 @@ def valid(self):
     return True
 
 
-def is_empty(self):
+def isEmpty(self):
     if len(self.stack()) == 0:
         return True
     return False
 
 #
-def push_op(st, op):
+def pushOp(st, op):
     # Handling of false bottom, if opening parenthesis, then save current state of stacks
     # in a stack of stacks, to retrieve it 
     if op == '(':
@@ -26,7 +26,7 @@ def push_op(st, op):
         st.operators().push(op)
 
 
-def pop_op(st, op):
+def popOp(st, op):
     # Handling of false bottom, if closing parenthesis, then retrieve the top of the
     # stacks stack to reestablish the previous state
     if op == ')':
@@ -71,6 +71,6 @@ class Stack:
             return element
 
     def top(self):
-        if is_empty(self):
+        if isEmpty(self):
             return None
         return self.__stack[-1]

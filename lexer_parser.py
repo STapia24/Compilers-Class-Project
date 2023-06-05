@@ -3,7 +3,7 @@ import ply.lex as lex
 from Structures.QuadrupleGen import *
 from Structures.SemanticCube import *
 from Structures.SymbolTable import SymbolTable
-from Structures.CustomStack import push_op, pop_op
+from Structures.CustomStack import pushOp, popOp
 from Structures.QuadActions import *
 
 def initTableAndQuads():
@@ -150,10 +150,11 @@ precedence = (
     ('left', 'MULT', 'DIV'),
 )
 
+############## GRAMMAR ##############
 
 # program
 def p_program(p):
-    """program : PROGRAM ID SEMICOLON var_dec func_dec main"""
+    """program : PROGRAM ID SEMICOLON goto_main var_dec save_vars_in_fd func_dec solve_main_quad main"""
     p[0] = tuple[1:]
   #  print("Got to program")
 
@@ -169,7 +170,7 @@ def p_block(p):
 
 # func_dec
 def p_func_dec(p):
-    """func_dec : FUNC return_type ID LP param_opt RP func_block func_dec
+    """func_dec : FUNC return_type ID save_id save_func push_scope LP param_opt save_params_in_fd RP func_block pop_scope func_dec
     | empty"""
     #print("Function declared")
 
@@ -232,12 +233,14 @@ def p_type_complex(p):
 # assignation
 def p_assignation(p):
     """assignation : var assignation_var ASSIGN exp_or_func_assignation"""
+    p[0] = tuple(p[1:])
     # print("Assignation")
 
 # exp_or_func_assignation
 def p_exp_or_func_assignation(p):
     """exp_or_func_assignation : expression_assignation
-    | func_call"""
+    | func_call assign_func"""
+    p[0] = tuple(p[1:])
     # print("Assignation of exp or function call")
 
 # expression_assignation
@@ -258,7 +261,7 @@ def p_exp_dim_opt(p):
     | empty"""
     # print("Dimensions when using variable")
 
-# If_statement
+# if_statement
 def p_if_statement(p):
     """if_statement : IF LP super_exp RP create_gotof block else update_pending_jump_1"""
     # print("If statement")
@@ -295,18 +298,19 @@ def p_constants(p):
 
 # func_call
 def p_func_call(p):
-    """func_call : ID LP opt_args RP SEMICOLON"""
+    """func_call : ID set_return_quad LP opt_args RP assign_gosub SEMICOLON"""
+    p[0] = tuple(p[1:])
     # print("Function called")
 
 # opt_args
 def p_opt_args(p):
-    """opt_args : exp exp_args_more
+    """opt_args : assign_params save_params exp save_params exp_args_more
     | empty"""
     # print("Arguments for a function call")
 
 # exp_args_more
 def p_exp_args_more(p):
-    """exp_args_more : COMMA exp exp_args_more
+    """exp_args_more : COMMA save_params exp save_params exp_args_more
     | empty"""
     # print("More arguments for a function call")
 
@@ -348,12 +352,12 @@ def p_statute(p):
 
 # func_block
 def p_func_block(p):
-    """ func_block : LBR var_dec statute RBR """
+    """ func_block : LBR var_dec save_vars_in_fd statute set_endfunc_quad RBR """
     # print("A func_block")
 
 # return
 def p_return(p):
-    """ return : RETURN LP super_exp RP SEMICOLON """
+    """ return : RETURN LP super_exp set_return_stmt RP SEMICOLON """
     # print("Returns something")
 
 # super_exp
@@ -395,7 +399,7 @@ def p_factor(p):
     """factor : LP push_op super_exp RP pop_op save_operand
     | constants save_operand
     | var save_operand
-    | func_call 
+    | func_call save_call_operand
     """
     p[0] = tuple(p[1:])
     #print("Found a factor")
@@ -454,19 +458,48 @@ def p_empty(p):
 #    print("Got to an empty production")
 
 ######### Semantic nodes functions #########
+def p_goto_main(p):
+    '''
+    goto_main :
+    '''
+    qg = QuadrupleGen.get()
+    saveMainQuad(qg)
+    saveFuncToFuncDir('global', len(qg.quadruples()) + 1)
+
+def p_solve_main_quad(p):
+    '''
+    solve_main_quad :
+    '''
+    qg = QuadrupleGen.get()
+    solveMainQuad(qg)
+
+def p_save_vars_in_fd(p):
+    '''
+    save_vars_in_fd :
+    '''
+    st = SymbolTable.get()
+    saveLocalVars(st)
+
+def p_save_params_in_fd(p):
+    '''
+    save_params_in_fd :
+    '''
+    st = SymbolTable.get()
+    saveParams(st)
+
 def p_push_op(p):
     '''
     push_op :
     '''
     st = SymbolTable.get()
-    push_op(st, p[-1])
+    pushOp(st, p[-1])
 
 def p_pop_op(p):
     '''
     pop_op :
     '''
     st = SymbolTable.get()
-    pop_op(st, p[-1])
+    popOp(st, p[-1])
 
 def p_save_id(p):
     '''
@@ -474,7 +507,7 @@ def p_save_id(p):
     '''
     st = SymbolTable.get()
     # print("The id is: ", p[-1])
-    st.set_curr_id(p[-1])
+    st.setCurrId(p[-1])
 
 def p_save_type(p):
     '''
@@ -482,14 +515,14 @@ def p_save_type(p):
     '''
     st = SymbolTable.get()
     #print("The type is: ", p[-1])
-    st.set_curr_type(p[-1])
+    st.setCurrType(p[-1])
 
 def p_save_var(p):
     '''
     save_var : 
     '''
     st = SymbolTable.get()
-    st.save_var()
+    st.saveVar()
     
 def p_save_operand(p):
     '''
@@ -498,7 +531,7 @@ def p_save_operand(p):
     st = SymbolTable.get()
     st.operands().push(p[-1])
     #print("pushing:", p[-1])
-    st.op_types().push(st.current_type())
+    st.opTypes().push(st.currentType())
 
 def p_check_relop_stack(p):
     '''
@@ -541,70 +574,64 @@ def p_assignation_var(p):
     assignation_var :
     '''
     st = SymbolTable.get()
-    st.set_curr_id(p[-1])
+    st.setCurrId(p[-1])
     #print("pushing:", st.current_id(), "as the var to assign")
-    st.var_to_assign().push(st.current_id())
+    st.varToAssign().push(st.currentId())
 
 def p_current_type_is_int(p):
     '''
     current_type_is_int :
     '''
     st = SymbolTable.get()
-    st.set_curr_type('int')
-    st.set_curr_id(p[-1])
-    st.current_scope().add_var(st.current_id(), 'int', True)
+    st.setCurrType('int')
+    st.setCurrId(p[-1])
+    st.currentScope().addVar(st.currentId(), 'int', True)
 
 def p_current_type_is_float(p):
     '''
     current_type_is_float :
     '''
     st = SymbolTable.get()
-    st.set_curr_type('float')
-    st.set_curr_id(p[-1])
-    st.current_scope().add_var(st.current_id(), 'float', True)
+    st.setCurrType('float')
+    st.setCurrId(p[-1])
+    st.currentScope().addVar(st.currentId(), 'float', True)
 
 def p_current_type_is_char(p):
     '''
     current_type_is_char :
     '''
     st = SymbolTable.get()
-    st.set_curr_type('char')
-    st.set_curr_id(p[-1])
-    st.current_scope().add_var(st.current_id(), 'char', True)
+    st.setCurrType('char')
+    st.setCurrId(p[-1])
+    st.currentScope().addVar(st.currentId(), 'char', True)
 
-# create_goto
 def p_create_goto(p):
     """create_goto : update_pending_jump"""
     qg = QuadrupleGen.get()
     createGotoQuadIf(qg)
 
-# Create_gotof
 def p_create_gotof(p):
     """create_gotof : """
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
     createGotoFQuadIf(st, qg)
 
-# Update_pending_jump
 def p_update_pending_jump(p):
     """update_pending_jump : """
     qg = QuadrupleGen.get()
     updatePendingJumpIf(qg)
 
-# Update_pending_jump_1
 def p_update_pending_jump_1(p):
     """update_pending_jump_1 : """
     qg = QuadrupleGen.get()
     updatePendingJumpIf(qg)
 
-# create_gotof_while
 def p_create_gotof_while(p):
     """create_gotof_while : """
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
     createGotoFQuadWhile(st, qg)
 
-# update_pending_jump_while
 def p_update_pending_jump_while(p):
     """update_pending_jump_while : """
     qg = QuadrupleGen.get()
@@ -615,10 +642,8 @@ def p_read_quad(p):
     read_quad :
     '''
     qg = QuadrupleGen.get()
-    qg.generate_quadruple('read', '', '', p[-1])
+    qg.generateQuadruple('read', '', '', p[-1])
     
-
-
 def p_print_quad(p):
     '''
     print_quad :
@@ -629,7 +654,108 @@ def p_print_quad(p):
     else:
         writeVar = flattenData(p[-1])
     qg = QuadrupleGen.get()
-    qg.generate_quadruple('print', '', '', writeVar)
+    qg.generateQuadruple('print', '', '', writeVar)
+
+def p_set_return_stmt(p):
+    '''
+    set_return_stmt :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    setReturn(st, qg)
+
+def p_assign_func(p):
+    '''
+    assign_func :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    functionAssignationActions(st, qg, p)
+
+def p_save_call_operand(p):
+    '''
+    save_call_operand :
+    '''
+    st = SymbolTable.get()
+    saveFuncCallOp(st)
+
+def p_set_return_quad(p):
+    '''
+    set_return_quad :
+    '''
+    qg = QuadrupleGen.get()
+    st = SymbolTable.get()
+    funcId = p[-1]
+    gosubJump = qg.generateQuad('GOSUB', '', '', funcId, False)
+    st.pendingJumps().push(gosubJump)
+    st.resetCurrentParams() # To clear params
+    # Saves function name in new params, pushes a false bottom then creates the ERA quadruple
+    st.currentParams().append(funcId)
+    st.operators().push('(')
+    qg.generateQuadruple('ERA', '', '', funcId)
+
+
+def p_assign_gosub(p):
+    '''
+    assign_gosub :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    gosubJump(st, qg)
+
+
+def p_assign_params(p):
+    '''
+    assign_params :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    try:
+        st.operators().pop()
+    except Exception:
+        pass
+    paramAssignQuads(st, qg)
+
+def p_save_params(p):
+    '''
+    save_params :
+    '''
+    st = SymbolTable.get()
+    st.currentParams().append(st.operands().pop())
+
+def p_set_endfunc_quad(p):
+    '''
+    set_endfunc_quad :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    returningQuad = qg.generateQuadruple('ENDFUNC', '', '', '')
+    setReturnQuad(st.currentScopeName(), returningQuad)
+
+def p_save_func(p):
+    '''
+    save_func :
+    '''
+    st = SymbolTable.get()
+    qg = QuadrupleGen.get()
+    st.saveFunc()
+    saveFuncToFuncDir(st.currentId, len(qg.quadruples())+ 1)
+
+def p_push_scope(p):
+    '''
+    push_scope :
+    '''
+    st = SymbolTable.get()
+    st.pushScope()
+
+def p_pop_scope(p):
+    '''
+    pop_scope :
+    '''
+    st = SymbolTable.get()
+    st.popScope()
+
+
 
 # Error rule for syntax errors
 def p_error(p):
@@ -661,8 +787,8 @@ def parse_input_file(filename):
         print("Parsing failed")
     print(result)
     qg = QuadrupleGen.get()
-    qg.print_quadruples()
+    qg.printQuadruples()
 
 
-parse_input_file('./Tests/while.txt')
+parse_input_file('./Tests/functions.txt')
 
