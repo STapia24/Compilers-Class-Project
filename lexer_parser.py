@@ -156,35 +156,34 @@ precedence = (
 def p_program(p):
     """program : PROGRAM ID SEMICOLON goto_main var_dec save_vars_in_fd func_dec solve_main_quad main"""
     p[0] = tuple[1:]
-  #  print("Got to program")
+    print("Got to program")
 
     # main
 def p_main(p):
     """main : MAIN LP RP block SEMICOLON"""
-    #print("Got into main")
+    print("Got into main")
 
 # block
 def p_block(p):
     """block : LBR statute statute1 RBR """
-    # print("Found a block")
+    print("Found a block")
 
 # func_dec
 def p_func_dec(p):
     """func_dec : FUNC return_type ID save_id save_func push_scope LP param_opt save_params_in_fd RP func_block pop_scope func_dec
     | empty"""
-    #print("Function declared")
+    print("Function declared")
 
 # param_opt
 def p_param_opt(p):
-    """param_opt : type_simple ID more_param_opt
-    | empty"""
-    # print("Got to param_opt")
+    """param_opt : type_simple save_type ID save_id save_operand_1 save_params more_param_opt"""
+    print("Got to param_opt")
 
 # more_param_opt
 def p_more_param_opt(p):
-    """more_param_opt : COMMA type_simple ID more_param_opt
+    """more_param_opt : COMMA param_opt
     | empty"""
-    # print("Got to more_param_opt")
+    print("Got to more_param_opt")
 
 # var_dec
 def p_var_dec(p):
@@ -193,7 +192,7 @@ def p_var_dec(p):
     | empty
     """
     p[0] = tuple(p[1:])
-    #print("Declared a variable")
+    print("Declared a variable")
 
 # complex_dec
 def p_complex_dec(p):
@@ -298,19 +297,18 @@ def p_constants(p):
 
 # func_call
 def p_func_call(p):
-    """func_call : ID set_return_quad LP opt_args RP assign_gosub SEMICOLON"""
+    """func_call : ID set_return_quad LP opt_args assign_params RP assign_gosub SEMICOLON"""
     p[0] = tuple(p[1:])
     # print("Function called")
 
 # opt_args
 def p_opt_args(p):
-    """opt_args : assign_params save_params exp save_params exp_args_more
-    | empty"""
+    '''opt_args : exp save_params exp_args_more'''
     # print("Arguments for a function call")
 
 # exp_args_more
 def p_exp_args_more(p):
-    """exp_args_more : COMMA save_params exp save_params exp_args_more
+    """exp_args_more : COMMA opt_args
     | empty"""
     # print("More arguments for a function call")
 
@@ -353,19 +351,19 @@ def p_statute(p):
 # func_block
 def p_func_block(p):
     """ func_block : LBR var_dec save_vars_in_fd statute set_endfunc_quad RBR """
-    # print("A func_block")
+    print("Inside function block")
 
 # return
 def p_return(p):
     """ return : RETURN LP super_exp set_return_stmt RP SEMICOLON """
-    # print("Returns something")
+    print("Returns something")
 
 # super_exp
 def p_super_exp(p):
     """ super_exp : exp relop push_op exp check_relop_stack
     | exp
     """
-   # print("Found a super_exp")
+    print("Found a super_exp")
 
 def p_relop(p):
     """ relop : EQ
@@ -385,7 +383,7 @@ def p_exp(p):
             | term check_stack_exp
     """
     p[0] = tuple(p[1:])
-  #  print("Found an exp")
+    print("Found an exp")
 
 def p_term(p):
     """term : factor check_stack_term MULT push_op term
@@ -393,7 +391,7 @@ def p_term(p):
             | factor check_stack_term
     """
     p[0] = tuple(p[1:])
-    #print("Found a term")
+    print("Found a term")
 
 def p_factor(p):
     """factor : LP push_op super_exp RP pop_op save_operand
@@ -402,7 +400,7 @@ def p_factor(p):
     | func_call save_call_operand
     """
     p[0] = tuple(p[1:])
-    #print("Found a factor")
+    print("Found a factor")
 
 def p_mean(p):
     """ mean : MEAN LP complex_var RP SEMICOLON """
@@ -464,7 +462,7 @@ def p_goto_main(p):
     '''
     qg = QuadrupleGen.get()
     saveMainQuad(qg)
-    saveFuncToFuncDir('global', len(qg.quadruples()) + 1)
+    saveFuncToDir('global', len(qg.quadruples()) + 1)
 
 def p_solve_main_quad(p):
     '''
@@ -506,7 +504,7 @@ def p_save_id(p):
     save_id :
     '''
     st = SymbolTable.get()
-    # print("The id is: ", p[-1])
+    print("The id is:", p[-1])
     st.setCurrId(p[-1])
 
 def p_save_type(p):
@@ -514,7 +512,7 @@ def p_save_type(p):
     save_type : 
     '''
     st = SymbolTable.get()
-    #print("The type is: ", p[-1])
+    print("The type is:", p[-1])
     st.setCurrType(p[-1])
 
 def p_save_var(p):
@@ -531,6 +529,14 @@ def p_save_operand(p):
     st = SymbolTable.get()
     st.operands().push(p[-1])
     #print("pushing:", p[-1])
+    st.opTypes().push(st.currentType())
+
+def p_save_operand_1(p):
+    '''
+    save_operand_1 :
+    '''
+    st = SymbolTable.get()
+    st.operands().push(p[-2])
     st.opTypes().push(st.currentType())
 
 def p_check_relop_stack(p):
@@ -686,8 +692,9 @@ def p_set_return_quad(p):
     qg = QuadrupleGen.get()
     st = SymbolTable.get()
     funcId = p[-1]
-    gosubJump = qg.generateQuad('GOSUB', '', '', funcId, False)
-    st.pendingJumps().push(gosubJump)
+    st.pushScope(funcId)
+    gosubJump = qg.generateQuadruple('GOSUB', '', '', funcId, False)
+    qg.addPendingJump(gosubJump)
     st.resetCurrentParams() # To clear params
     # Saves function name in new params, pushes a false bottom then creates the ERA quadruple
     st.currentParams().append(funcId)
@@ -721,7 +728,7 @@ def p_save_params(p):
     save_params :
     '''
     st = SymbolTable.get()
-    st.currentParams().append(st.operands().pop())
+    st.currentParams().append((st.operands().pop(), st.opTypes().pop()))
 
 def p_set_endfunc_quad(p):
     '''
@@ -739,14 +746,14 @@ def p_save_func(p):
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
     st.saveFunc()
-    saveFuncToFuncDir(st.currentId, len(qg.quadruples())+ 1)
+    saveFuncToDir(st.currentId(), len(qg.quadruples())+ 1)
 
 def p_push_scope(p):
     '''
     push_scope :
     '''
     st = SymbolTable.get()
-    st.pushScope()
+    st.pushNewScope()
 
 def p_pop_scope(p):
     '''

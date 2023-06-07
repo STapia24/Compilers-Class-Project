@@ -68,7 +68,7 @@ def functionAssignationActions(st, qg, params):
     if resultVarType != funcReturnType:
         raise Exception(
             f'Problem while assigning variable {resultVar}: types do not match.\nVariable to assign: {resultVar}\nFunction: {funcId}\nFunction return type: {funcReturnType}')
-    qg.generateQuad('FASSGN', resultVar, '', funcId)
+    qg.generateQuadruple('FASSGN', resultVar, '', funcId)
 
 def paramAssignQuads(st, qg):
     funcName = st.currentParams().pop(0)
@@ -78,32 +78,33 @@ def paramAssignQuads(st, qg):
     paramNames = []
     paramsList = function.params()
     for param in paramsList:
-        paramNames.append(param[1])
+        paramNames.append(param[0])
     # For each parameter does type check then creates the param quadruple (PARAM, value, '', varName)
     for i in range(len(paramNames)):
-        leftType = st.currentScope().getVarFromId(paramValues[i]).varType()
+        leftType = st.currentScope().getVarFromId(paramNames[i]).varType()
         rightParams = getParams(funcName)
         rightType = None
         for param in rightParams:
-            if param[1] == paramNames[i]:
-                rightType = param[0]
+            if param[0] == paramNames[i]:
+                rightType = param[1]
         if leftType != rightType:
             raise Exception(
                 f'Type mismatch: expected \'{rightType}\' parameter but received \'{leftType}\'')
-        qg.generateQuad('PARAM', paramValues[i], '', paramNames[i])
+        qg.generateQuadruple('PARAM', paramValues[i][0], '', paramNames[i])
 
 def gosubJump(st, qg):
-    funcJump = st.pendingJumps().pop()
-    qg.addPendingJump(funcJump)
+    funcJump = qg.pendingJumps().pop()
+    op, left, right, res = funcJump
+    qg.generateQuadruple(op, left, right, res)
 
 def setReturn(st, qg):
     functionType = st.currentScope().getFuncFromId(st.currentScopeName()).returnType()
     varType = st.currentScope().getVarFromId(st.operands().top()).varType()
     if functionType != varType:
         raise Exception(f'Problem while returning value for function \'{st.currentScopeName()}\': types do not match.\nFunction type: {functionType}\nVariable type: {varType}')
-    qg.generateQuad('RETURN', '', '', st.operands().top())
+    qg.generateQuadruple('RETURN', '', '', st.operands().top())
     setReturnVarId(st.currentScopeName(), st.operands().pop())
-    qg.generateQuad('GOTOENDFUNC', '', '', '')
+    qg.generateQuadruple('GOTOENDFUNC', '', '', '')
 
 def saveFuncCallOp(st):
     # Saves function return variable in operands Stack
@@ -112,6 +113,7 @@ def saveFuncCallOp(st):
     currentVar = st.currentScope().getVarFromID(getReturnVarId(st.currentScopeName()))
     # Saves return var type in opTypes Stack
     st.opTypes().push(currentVar.varType())
+    print("Pushed:", currentVar, "to operand stack and", currentVar.varType(), "to opType stack")
 
 ############ Non-linear Statements ############
 

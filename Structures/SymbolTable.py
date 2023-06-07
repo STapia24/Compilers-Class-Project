@@ -19,8 +19,8 @@ class SymbolTable:
                 "Symbol Table already declared, use 'SymbolTable.get()'.")
         else:
             SymbolTable.__instance = self
-            self.__scopeStack = []
-            self.__scopeStack.append(('global', Scope()))
+            self.__scopeStack = Stack()
+            self.__scopeStack.push(('global', Scope()))
             self.__currentType = None
             self.__currentId = None
             self.__lastSavedFunc = None
@@ -34,10 +34,10 @@ class SymbolTable:
             self.__currentParams = []
 
     def currentScopeName(self):
-        return self.scopeStack()[-1][0]
+        return self.scopeStack().top()[0]
 
     def currentScope(self):
-        return self.scopeStack()[-1][1]
+        return self.scopeStack().top()[1]
 
     def scopeStack(self):
         return self.__scopeStack
@@ -87,15 +87,24 @@ class SymbolTable:
         self.lastSavedFunc().params().append((self.currentType(), self.currentId()))
         self.currentScope().addVar(self.currentId(), self.currentType())
 
-    def pushScope(self):
+    def pushNewScope(self):
         name = self.currentId()
         scope_obj = Scope()
         scope_obj.setParent(self.currentScope())
         self.currentScope().scopes()[name] = scope_obj
-        self.scopeStack().append((name, scope_obj))
+        self.scopeStack().push((name, scope_obj))
+
+    # Push a scope into the scope stack
+    # The new scope needs to be a child of the current scope
+    def pushScope(self, scopeName):
+        scopeObj = self.currentScope().scopes().get(scopeName)
+        if scopeObj != None:
+            self.scopeStack().push((scopeName, scopeObj))
+        else:
+            raise Exception(f"Scope '{scopeName}' does not exist.")
 
     def popScope(self):
-        self.scope_stack().pop()
+        self.scopeStack().pop()            
 
     def operands(self):
         return self.__operands

@@ -1,0 +1,42 @@
+1 gotomain   27
+2 == n 0 t_1
+3 gotof t_1 None 7
+4 return   0
+5 gotoendfunc
+6 goto None None 26
+7 == n 1 t_2
+8 gotof t_2 None 12
+9 return   1
+10 gotoendfunc
+11 goto None None 26
+12 ERA   fibRecursivo
+13 - n 1 t_3
+14 param t_3  n
+15 gosub   fibRecursivo
+16 ASSGN temp1  fibRecursivo
+17 ERA   fibRecursivo
+18 - n 2 t_4
+19 param t_4  n
+20 gosub   fibRecursivo
+21 ASSGN temp2  fibRecursivo
+22 + temp1 temp2 t_5
+23 return   t_5
+24 gotoendfunc
+25 goto None None 26
+26 endfunc
+27 ERA   fibRecursivo
+28 param 5  n
+29 gosub   fibRecursivo
+30 ASSGN result  fibRecursivo
+31 write   "fibonacci(5) = "
+32 write   ('result',)
+33 write   "\n"
+
+def save_func_call_operand(st):
+    # saves function return var in operand stack
+    st.operands().push(get_return_var_id(st.current_scope_name()))
+    # saves return var as current
+    curr_var = st.current_scope().get_var_from_id(
+        get_return_var_id(st.current_scope_name()))
+    # saves return var type in op_types stack
+    st.op_types().push(curr_var.var_type())

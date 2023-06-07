@@ -66,8 +66,11 @@ class Function:
     def name(self):
         return self.__name
 
-    def return_type(self):
+    def returnType(self):
         return self.__type
 
     def params(self):
         return self.__params
+    
+    def setParams(self, params):
+        self.__params = params

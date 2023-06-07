@@ -46,11 +46,11 @@ def getReturnVarId(funcId):
     return FuncDirectory[funcId]['return_var']
 
 
-def saveFuncToFuncDir(funcId, startingQuadPosition):
+def saveFuncToDir(funcId, startingQuadPosition):
     funcId = isNewFunction(funcId)
     # Creates a new function with empty values
     FuncDirectory[funcId] = {
-        'dir': startingQuadPosition, 'return': None, 'return_var': None, 'params': None, 'local_vars': None}
+        'dir': startingQuadPosition, 'return': None, 'return_var': None, 'params': None, 'localVars': None}
 
 
 def setFuncStartingQuad(funcId, startingQuadPosition):
@@ -70,12 +70,17 @@ def getParams(funcId):
 
 def saveParams(st):
     # gets function object using scope name to get params
+    currScope = st.currentScope()
     funcId = st.currentScopeName()
-    funcObj = st.currentScope().getFuncFromId(funcId)
-    params = funcObj.params()
+    params = st.currentParams()
+    funcObj = currScope.getFuncFromId(funcId)
+    funcObj.setParams(params)
 
     funcId = exists(funcId)
     FuncDirectory[funcId]['params'] = params
+
+    for param in params:
+        st.currentScope().addVar(param[0], param[1])
 
 
 def saveLocalVars(st):
@@ -102,4 +107,4 @@ def saveTempVar(st, varName, varType):
 
 def getLocalVar(funcId):
     funcId = exists(funcId)
-    return FuncDirectory[funcId]['local_vars']
+    return FuncDirectory[funcId]['localVars']
