@@ -15,7 +15,6 @@ class Scope:
         return self.__vars
     
     def scopes(self):
-        # a scope can have other scopes, ex: global has class scopes, class scope have method scopes
         return self.__scopes
 
     def parent(self):
@@ -75,9 +74,9 @@ class Scope:
         if funcId in self.funcs():
             return self.funcs()[funcId]
         else:
-            parent_scope = self.parent()
-            if parent_scope:
-                func = parent_scope.getFuncFromId(funcId)
+            parentScope = self.parent()
+            if parentScope:
+                func = parentScope.getFuncFromId(funcId)
                 if func:
                     return func
             else:

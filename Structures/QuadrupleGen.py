@@ -1,5 +1,5 @@
 class QuadrupleGen:
-    
+       
     # Singleton class
     __instance = None
 

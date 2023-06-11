@@ -9,7 +9,7 @@ from Structures.FunctionDir import *
 ############ Main Handling ############
 
 def saveMainQuad(qg):
-    mainQuad = qg.generateQuadruple('goto', '', '', '')
+    mainQuad = qg.generateQuadruple('goto', 'main', '', '')
     qg.addPendingJump(mainQuad)
 
 def solveMainQuad(qg):
@@ -55,7 +55,7 @@ def normalAssignationActions(st, qg):
 # Function Call
 # (ERA, '', '', funcName) 
 # solve params // ex. (+, A, B, tx)
-# (PARAM, tx, '', Parameter#) -> Repeat for each parameter
+# (PARAM, tx, '', parameterName) -> Repeat for each parameter
 # (GOSUB, '', '', funcName)
 # ENDFUNC
 ###############################################################
@@ -104,7 +104,7 @@ def setReturn(st, qg):
         raise Exception(f'Problem while returning value for function \'{st.currentScopeName()}\': types do not match.\nFunction type: {functionType}\nVariable type: {varType}')
     qg.generateQuadruple('RETURN', '', '', st.operands().top())
     setReturnVarId(st.currentScopeName(), st.operands().pop())
-    qg.generateQuadruple('GOTOENDFUNC', '', '', '')
+    qg.generateQuadruple('goto', 'ENDFUNC', '', '')
 
 def saveFuncCallOp(st):
     # Saves function return variable in operands Stack

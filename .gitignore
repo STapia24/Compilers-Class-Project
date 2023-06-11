@@ -166,4 +166,4 @@ parsetab.py
 # vscode files
 .vscode/*
 
-Tests/fibonacciQuads.txt
+Tests

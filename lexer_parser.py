@@ -355,7 +355,7 @@ def p_func_block(p):
 
 # return
 def p_return(p):
-    """ return : RETURN LP super_exp set_return_stmt RP SEMICOLON """
+    """ return : RETURN LP exp set_return_stmt RP SEMICOLON """
     print("Returns something")
 
 # super_exp
@@ -692,13 +692,13 @@ def p_set_return_quad(p):
     qg = QuadrupleGen.get()
     st = SymbolTable.get()
     funcId = p[-1]
-    st.pushScope(funcId)
+    st.pushNewScope()
     gosubJump = qg.generateQuadruple('GOSUB', '', '', funcId, False)
     qg.addPendingJump(gosubJump)
     st.resetCurrentParams() # To clear params
     # Saves function name in new params, pushes a false bottom then creates the ERA quadruple
     st.currentParams().append(funcId)
-    st.operators().push('(')
+    # st.operators().push('(')
     qg.generateQuadruple('ERA', '', '', funcId)
 
 
@@ -773,29 +773,7 @@ def p_error(p):
         print("Syntax error: Unexpected end of file")
 
 
-# Build lexer
+# Build lexer and parser
 lexer = lex.lex()
-
-# Build the parser
 parser = yacc.yacc()
-
-
-def parse_input_file(filename):
-    with open(filename, 'r') as file:
-        input_code = file.read()
-
-    # Lex and parse the input code
-    lexer.input(input_code)
-
-    result = parser.parse(input_code, lexer=lexer)
-    if result:
-        print("Parsing completed succesfully!")
-    else:
-        print("Parsing failed")
-    print(result)
-    qg = QuadrupleGen.get()
-    qg.printQuadruples()
-
-
-parse_input_file('./Tests/functions.txt')
 

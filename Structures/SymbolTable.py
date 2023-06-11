@@ -94,15 +94,6 @@ class SymbolTable:
         self.currentScope().scopes()[name] = scope_obj
         self.scopeStack().push((name, scope_obj))
 
-    # Push a scope into the scope stack
-    # The new scope needs to be a child of the current scope
-    def pushScope(self, scopeName):
-        scopeObj = self.currentScope().scopes().get(scopeName)
-        if scopeObj != None:
-            self.scopeStack().push((scopeName, scopeObj))
-        else:
-            raise Exception(f"Scope '{scopeName}' does not exist.")
-
     def popScope(self):
         self.scopeStack().pop()            
 
