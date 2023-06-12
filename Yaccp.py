@@ -1,9 +1,8 @@
 # This is the file that runs the compiler 
 
-from Lexer_parser import lexer, parser, SyntaxError
+from Lexer_parser import lexer, parser
 from Structures.QuadrupleGen import QuadrupleGen
-from Structures.VirtualMachine import *
-from Structures.Memory import VirtualMachine
+from Structures.VirtualMachine import VirtualMachine
 import sys
 
 
@@ -23,22 +22,21 @@ def openFile(fileName):
     return lines
 
 if len(sys.argv) >= 2:
-    file = sys.argv[1]
+    file = 'Tests/' + sys.argv[1]
 else:
-    file = input('Please write the file name: \n' + '->')
-    print()
+    file = 'Tests/' + input('Please write the file name: ')
 
 inputFile = openFile(file)
 lexer.input(inputFile)
 
 try:
-    parser.parse(inputFile, debug = 1)
+    parser.parse(inputFile, debug = 0)
     print("Parsing completed succesfully!")
 except SyntaxError as err:
     print(f'Syntax error: Unexpected symbol {err.args[0]} in line {err.args[1]}.\n')
     exit(1)
 except Exception as exception:
-    print(f'Unknown error: {exception.args[0]}\n')
+    print(f'Unknown error: {exception.args[0]} in line {exception.args[1]}\n')
 
 qg = QuadrupleGen.get()
 qg.printQuadruples()
@@ -50,4 +48,3 @@ try:
 except Exception as exception:
     print('There was an error during the compiling process')
     print(exception)
-print()

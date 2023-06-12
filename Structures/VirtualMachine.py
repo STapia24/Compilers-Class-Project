@@ -92,7 +92,7 @@ class VirtualMachine:
         return self.__ip
 
     def setInstructionPointer(self, index):
-        self.__ip = index - 1
+        self.__ip = index
 
     def pointToNextQuad(self):
         self.__ip = self.__ip + 1
@@ -101,6 +101,7 @@ class VirtualMachine:
         quads = self.__quads
         while self.instructionPointer() < len(quads):
             operator, leftOp, rightOp, result = quads[self.instructionPointer()]
+            print('Executing:', quads[self.instructionPointer()])
             mem = Memory.get()
             relops = ['+', '-', '/', '*', '<', '>', '==', '!=', '<=', '>=', '&&', '||']
 
@@ -109,7 +110,7 @@ class VirtualMachine:
                     mem.activeMemory().setConstVal(result, leftOp)
                 else:
                     mem.activeMemory().setVal(result, leftOp)
-                    self.pointToNextQuad()
+                self.pointToNextQuad()
             elif operator in relops:
                 solveOperations(operator, leftOp, rightOp, result)
                 self.pointToNextQuad()
@@ -118,15 +119,19 @@ class VirtualMachine:
             # if 'ENDFUNC' is in left operand it sets the instruction pointer to the pending jump and deletes the memory
             # if gotof, it evaluates the expression then if false, it jumps to the marked quadruple
             # if true then it just sets pointer to next quadruple
-            elif operator == 'goto':
-                self.setInstructionPointer(result)
             elif operator == 'goto' and leftOp == 'main':
-                self.setInstructionPointer(result)
-                localMemory = memoryStart(mem, 'global')
-                mem.localStacks().push(localMemory)
+                if result == 1:
+                    localMemory = memoryStart(mem, 'global')
+                    mem.localMemoryStacks().push(localMemory)                    
+                    self.pointToNextQuad()
+                else:
+                    self.setInstructionPointer(result)
+                    localMemory = memoryStart(mem, 'global')
             elif operator == 'goto' and leftOp == 'ENDFUNC':
                 self.setInstructionPointer(self.jumpStack().pop())
-                mem.localsStack().pop()
+                mem.localMemoryStacks().pop()
+            elif operator == 'goto':
+                self.setInstructionPointer(result)
             elif operator == 'gotof':
                 compareRes = mem.activeMemory().getVal(leftOp)
                 if compareRes == False:
@@ -152,6 +157,7 @@ class VirtualMachine:
                     print(writing, end='')
                 else:
                     print(mem.activeMemory().getVal(result[-1]), end='')
+                print()
                 self.pointToNextQuad()
             # Receives the input from the user and tries to match it with its type
             elif operator == 'read':

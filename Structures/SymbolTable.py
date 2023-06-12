@@ -75,8 +75,8 @@ class SymbolTable:
             print("saving var:", self.currentId(), "it's type is:", self.currentType())
             self.currentScope().addVar(self.currentId(), self.currentType())
 
-    def saveTempVar(self, name, var_type):
-        self.current_scope().add_var(name, var_type)
+    def saveTempVar(self, name, varType):
+        self.currentScope().addVar(name, varType)
 
     def saveFunc(self):
         scope = self.currentScope()

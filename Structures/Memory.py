@@ -36,19 +36,19 @@ class MemoryChunk:
 
     def findAddress(self, varId):
 
-        ints = self.get_vars('int')
+        ints = self.getVars('int')
         if varId in ints:
             return ints[varId], 'int'
 
-        floats = self.get_vars('float')
+        floats = self.getVars('float')
         if varId in floats:
             return floats[varId], 'float'
 
-        bools = self.get_vars('bool')
+        bools = self.getVars('bool')
         if varId in bools:
             return bools[varId], 'bool'
 
-        chars = self.get_vars('char')
+        chars = self.getVars('char')
         if varId in chars:
             return chars[varId], 'char'
         
@@ -103,13 +103,13 @@ class MemoryChunk:
 
     def print(self):
         # Used only for debugging
-        ints = self.get_vars('int')
+        ints = self.getVars('int')
         print('ints', ints)
-        floats = self.get_vars('float')
+        floats = self.getVars('float')
         print('floats', floats)
-        bools = self.get_vars('bool')
+        bools = self.getVars('bool')
         print('bools', bools)
-        chars = self.get_vars('char')
+        chars = self.getVars('char')
         print('chars', chars)
 
     def getVal(self, varId):

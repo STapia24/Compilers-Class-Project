@@ -30,18 +30,20 @@ def operationsActions(st, qg):
     resultType = checkTypes(lType, rType, op)
     # Create temporal var
     tempVar = qg.generateTemp()
-    # Generate quad and store resulting operands and type in the operands and op_types stacks
+    saveTempVar(st, tempVar, resultType)
+    st.saveTempVar(tempVar, resultType)
+    # Generate quad and store resulting operands and type in the operands and opTypes stacks
     qg.generateQuadruple(op, lOp, rOp, tempVar)
     st.operands().push(tempVar)
     st.opTypes().push(resultType)
-    # print("pushed:", {temp_var}, "it's type is", {resultType})
+    # print("pushed:", {tempVar}, "it's type is", {resultType})
 
 def normalAssignationActions(st, qg):
     rOp = ''
     lOp = st.operands().pop()
     lType = st.opTypes().pop()
     op = '='
-    # print("This is the var to assign:", st.var_to_assign().top())
+    # print("This is the var to assign:", st.varToAssign().top())
     resultVar = st.varToAssign().pop()
     resultVarType = st.currentScope().getVarFromId(resultVar).varType()
     if resultVarType != lType:

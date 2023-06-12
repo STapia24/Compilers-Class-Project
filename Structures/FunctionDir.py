@@ -100,7 +100,7 @@ def saveLocalVars(st):
 
 def saveTempVar(st, varName, varType):
     # saves temp vars as local vars to be used in ERA
-    funcId = st.current_scope_name()
+    funcId = st.currentScopeName()
     funcId = exists(funcId)
     FuncDirectory[funcId]['localVars'].append((varName, varType))
 

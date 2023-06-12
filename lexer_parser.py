@@ -1,10 +1,12 @@
-import ply.yacc as yacc
-import ply.lex as lex
+from Structures.SymbolTable import SymbolTable
+from Structures.Memory import Memory
+from Structures.CustomStack import pushOp, popOp
 from Structures.QuadrupleGen import *
 from Structures.SemanticCube import *
-from Structures.SymbolTable import SymbolTable
-from Structures.CustomStack import pushOp, popOp
 from Structures.QuadActions import *
+import ply.yacc as yacc
+import ply.lex as lex
+
 
 def initTableAndQuads():
     SymbolTable()
@@ -592,6 +594,8 @@ def p_current_type_is_int(p):
     st.setCurrType('int')
     st.setCurrId(p[-1])
     st.currentScope().addVar(st.currentId(), 'int', True)
+    mem = Memory.get()
+    mem.addConstant(st.currentId(), 'int')
 
 def p_current_type_is_float(p):
     '''
@@ -601,6 +605,8 @@ def p_current_type_is_float(p):
     st.setCurrType('float')
     st.setCurrId(p[-1])
     st.currentScope().addVar(st.currentId(), 'float', True)
+    mem = Memory.get()
+    mem.addConstant(st.currentId(), 'float')
 
 def p_current_type_is_char(p):
     '''
@@ -610,6 +616,8 @@ def p_current_type_is_char(p):
     st.setCurrType('char')
     st.setCurrId(p[-1])
     st.currentScope().addVar(st.currentId(), 'char', True)
+    mem = Memory.get()
+    mem.addConstant(st.currentId(), 'char')
 
 def p_create_goto(p):
     """create_goto : update_pending_jump"""
