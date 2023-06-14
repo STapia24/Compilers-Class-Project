@@ -14,14 +14,14 @@ def pushOp(st, op):
     # Handling of false bottom, if opening parenthesis, then save current state of stacks
     # in a stack of stacks, to retrieve it 
     if op == '(':
-        st.operands_stacks().push(st.operands())
-        st.set_operands(Stack())
+        st.operandsStacks().push(st.operands())
+        st.setOperands(Stack())
 
-        st.types_stacks().push(st.op_types())
-        st.set_types(Stack())
+        st.typesStacks().push(st.opTypes())
+        st.setTypes(Stack())
 
-        st.operators_stacks().push(st.operators())
-        st.set_operators(Stack())
+        st.operatorsStacks().push(st.operators())
+        st.setOperators(Stack())
     else:
         st.operators().push(op)
 
@@ -31,22 +31,22 @@ def popOp(st, op):
     # stacks stack to reestablish the previous state
     if op == ')':
         try:
-            prev_operands = st.operands_stacks().pop()
-            st.set_operands(prev_operands)
+            prevOperands = st.operandsStacks().pop()
+            st.setOperands(prevOperands)
         except:
-            st.set_operands(Stack())
+            st.setOperands(Stack())
 
         try:
-            prev_types = st.types_stacks().pop()
-            st.set_types(prev_types)
+            prevTypes = st.typesStacks().pop()
+            st.setTypes(prevTypes)
         except:
-            st.set_types(Stack())
+            st.setTypes(Stack())
 
         try:
-            prev_operators = st.operators_stacks().pop()
-            st.set_operators(prev_operators)
+            prevOperators = st.operatorsStacks().pop()
+            st.setOperators(prevOperators)
         except:
-            st.set_operators(Stack())
+            st.setOperators(Stack())
     else:
         st.operators().pop()
 

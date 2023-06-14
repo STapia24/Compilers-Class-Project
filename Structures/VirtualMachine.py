@@ -44,10 +44,10 @@ def assignParams(vm, mem, funcId):
     paramsList = FuncDirectory[funcId]['params']
     paramOrder = vm.getParams()
     for i in range(0, len(paramsList)):
-        fillAddress, _ = vm.callStack().top().findAddress(paramsList[i][1])
+        fillAddress, _ = vm.callStack().top().findAddress(paramsList[i][0], False)
         valAddress = paramOrder[i]
-        fillValue = mem.getVal(valAddress)
-        mem.assignVal(fillValue, fillAddress)
+        fillValue = mem.activeMemory().getAddressValue(valAddress)
+        mem.activeMemory().assignAddressValue(fillValue, fillAddress)
 
 def memoryStart(mem, funcId):
     varsList = getLocalVar(funcId)
@@ -88,7 +88,6 @@ class VirtualMachine:
             self.__jumpStack = Stack()
 
     def instructionPointer(self):
-        # keeps track of quad index
         return self.__ip
 
     def setInstructionPointer(self, index):
@@ -101,7 +100,7 @@ class VirtualMachine:
         quads = self.__quads
         while self.instructionPointer() < len(quads):
             operator, leftOp, rightOp, result = quads[self.instructionPointer()]
-            print('Executing:', quads[self.instructionPointer()])
+            # print('Executing:', quads[self.instructionPointer()])
             mem = Memory.get()
             relops = ['+', '-', '/', '*', '<', '>', '==', '!=', '<=', '>=', '&&', '||']
 
@@ -184,8 +183,8 @@ class VirtualMachine:
                 self.pointToNextQuad()
             #Saves the jump to make then executes the GOSUB (Which is a jump to the function)
             elif operator == 'GOSUB':
-                self.jumpStack().push(self.instructionPointer()+2)
-                funcStart = getFunc(result)
+                self.jumpStack().push(self.instructionPointer()+1)
+                funcStart = getFunc(result) - 1
                 self.setInstructionPointer(funcStart)
                 # After running the function, clears parameters and deletes the memory segment
                 # for the function
@@ -200,7 +199,7 @@ class VirtualMachine:
             # Returns the value of the function
             elif operator == 'RETURN':
                 resultAddress, _ = mem.activeMemory().findAddress(result)
-                resultVal = mem.getVal(resultAddress)
+                resultVal = mem.activeMemory().getAddressValue(resultAddress)
                 self.callStack().push(resultVal)
                 self.pointToNextQuad()
             # Marks the end of a function, it returns to the quadruple that was being executed
@@ -209,21 +208,18 @@ class VirtualMachine:
                 self.setInstructionPointer(self.jumpStack().pop())
                 mem.localMemoryStacks().pop()
             # Special operation for assigning values between scopes
-            # Used when assigning the result of a funnction call to a variable
+            # Used when assigning the result of a function call to a variable
             elif operator == 'FASSGN':
                 resultAddress, _ = mem.activeMemory().findAddress(leftOp)
                 resultVal = self.callStack().pop()
-                mem.assignAddressValue(resultVal, resultAddress)
+                mem.activeMemory().assignAddressValue(resultVal, resultAddress)
                 self.pointToNextQuad()
             else:
                 raise Exception(
                     f'Unrecognized operation in quadruple: ({operator}, {leftOp}, {rightOp}, {result})')
             
     def addParam(self, param):
-        if type(param) == tuple:
-            self.__funcParams.append(param[0])
-        else:
-            self.__funcParams.append(param)
+        self.__funcParams.append(param)
 
     def getParams(self):
         return self.__funcParams

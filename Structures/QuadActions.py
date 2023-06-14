@@ -82,8 +82,9 @@ def paramAssignQuads(st, qg):
     for param in paramsList:
         paramNames.append(param[0])
     # For each parameter does type check then creates the param quadruple (PARAM, value, '', varName)
+    # print(f'-> calling function \'{funcName}\'')
     for i in range(len(paramNames)):
-        leftType = st.currentScope().getVarFromId(paramNames[i]).varType()
+        leftType = st.currentScope().getVarFromId(paramValues[i][0]).varType()
         rightParams = getParams(funcName)
         rightType = None
         for param in rightParams:
@@ -115,7 +116,7 @@ def saveFuncCallOp(st):
     currentVar = st.currentScope().getVarFromID(getReturnVarId(st.currentScopeName()))
     # Saves return var type in opTypes Stack
     st.opTypes().push(currentVar.varType())
-    print("Pushed:", currentVar, "to operand stack and", currentVar.varType(), "to opType stack")
+    # print("Pushed:", currentVar, "to operand stack and", currentVar.varType(), "to opType stack")
 
 ############ Non-linear Statements ############
 

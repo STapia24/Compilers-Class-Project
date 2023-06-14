@@ -4,8 +4,7 @@ from Structures.CustomStack import Stack
 ranges = {
     'global': { 'int': 1000, 'float': 2000, 'bool': 3000, 'char': 4000 },
     'local': { 'int': 10000, 'float': 11000, 'bool': 12000, 'char': 13000 },
-    'temp': { 'int': 20000, 'float': 21000, 'bool': 22000, 'char': 23000 },
-    'const': { 'int': 30000, 'float': 31000, 'bool': 32000, 'char': 33000 },
+    'temp': { 'int': 20000, 'float': 21000, 'bool': 22000, 'char': 23000 }
 }
  
 memAddress = {}
@@ -34,8 +33,8 @@ class MemoryChunk:
         if addressType == 'char':
             return self.__char
 
-    def findAddress(self, varId):
-
+    def findAddress(self, varId, recursiveLookup=True):
+        # print(f"-> finding address for '{varId}'")
         ints = self.getVars('int')
         if varId in ints:
             return ints[varId], 'int'
@@ -53,19 +52,21 @@ class MemoryChunk:
             return chars[varId], 'char'
         
         # Looks among the constants in case variable has not been found
-        memory = Memory.get()
-        constants = memory.getConsts()
-        try:
-            address, varType = constants.findAddress(varId)
-        except:
-            address = None
-        if not address:
-            globalMem = memory.getGlobalMemory()
-            address, varType = globalMem.findAddress(varId)
+        if recursiveLookup:
+            memory = Memory.get()
+            constants = memory.getConsts()
+            try:
+                address, varType = constants.findAddress(varId, False)
+            except:
+                address = None
             if not address:
-                raise Exception(
-                    f"Could not find address for variable '{varId}'")
-        return address, varType
+                globalMem = memory.getGlobalMemory()
+                address, varType = globalMem.findAddress(varId, False)
+                if not address:
+                    raise Exception(
+                        f"Could not find address for variable '{varId}'")
+            return address, varType
+        raise Exception(f"Could not find address for variable '{varId}'")
 
     def initAddress(self, varId, addressType, scope):
         try:
@@ -85,8 +86,8 @@ class MemoryChunk:
 
     def setVal(self, resId, valueId):
         valueAddress, _ = self.findAddress(valueId)
-        address_to_set, _ = self.findAddress(resId)
-        memAddress[address_to_set] = memAddress[valueAddress]
+        setThisAddress, _ = self.findAddress(resId)
+        memAddress[setThisAddress] = memAddress[valueAddress]
 
     def setConstVal(self, resId, value, valueType=None):
         if valueType == None:
@@ -118,9 +119,25 @@ class MemoryChunk:
             # If there's no address then it means it's a constant and thus has to be searched as one
             memory = Memory.get()
             constants = memory.getConsts()
-            constant_value = constants.getVal(varId)
-            return constant_value
+            constantValue = constants.getVal(varId)
+            return constantValue
         return memAddress[address]
+    
+    def getAddressValue(self, address):
+        try:
+            return memAddress[address]
+        except:
+            raise Exception(
+                f"Accessing empty memory address '{address}'")
+
+    def assignAddressValue(self, value, address):
+        try:
+            memAddress[address] = value
+            # print("Stored:", value, "in address:", address)
+        except:
+            raise Exception(
+                f"Assigning to an empty memory address '{address}'")
+
 
 
 
@@ -164,17 +181,3 @@ class Memory:
     def activeMemory(self):
         # Returns the most recent local memory
         return self.localMemoryStacks().top()
-
-    def getAddressValue(self, address):
-        try:
-            return memAddress[address]
-        except:
-            raise Exception(
-                f"Accessing empty memory address '{address}'")
-
-    def assignAddressValue(self, value, address):
-        try:
-            memAddress[address] = value
-        except:
-            raise Exception(
-                f"Assigning to an empty memory address '{address}'")

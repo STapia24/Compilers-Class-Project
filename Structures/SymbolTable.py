@@ -72,7 +72,7 @@ class SymbolTable:
         self.__lastSavedFunc = savedFunc
 
     def saveVar(self):
-            print("saving var:", self.currentId(), "it's type is:", self.currentType())
+            # print("saving var:", self.currentId(), "it's type is:", self.currentType())
             self.currentScope().addVar(self.currentId(), self.currentType())
 
     def saveTempVar(self, name, varType):

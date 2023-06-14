@@ -55,18 +55,19 @@ class Scope:
     def getVarFromId(self, varId):
         # Looks for a variable by its id in the current scope, if not found
         # then looks for the variable in other scopes if not found: ERR: Variable not declared
+        # print(f'Looking for variable \'{varId}\' in scope that contains: \nfuncs: {self.funcs().keys()}\nvars: {self.vars().keys()}\nscopes: {self.scopes().keys()}\n')
         if varId in self.vars():
             return self.vars()[varId]
         else:
-            parent_scope = self.parent()
-            if parent_scope:
-                var = parent_scope.getVarFromId(varId)
+            parentScope = self.parent()
+            if parentScope:
+                var = parentScope.getVarFromId(varId)
                 if var:
                     return var
                 return None
             else:
                 raise Exception(
-                    f'Variable \'{varId}\' not declared')
+                    f'Variable \'{varId}\' was not declared')
 
     def getFuncFromId(self, funcId):
         # Looks for a function by its id in the current scope, if not found
@@ -81,4 +82,4 @@ class Scope:
                     return func
             else:
                 raise Exception(
-                    f'Function \'{funcId}\' not declared')
+                    f'Function \'{funcId}\' was not declared')

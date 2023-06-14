@@ -37,10 +37,10 @@ class QuadrupleGen:
         if addQuad:
             quadruple = [operator, operand1, operand2, result]
             self.__quadruples.append(quadruple)
-            print(f"-> Generated and added quadruple: {quadruple}")
+            # print(f"-> Generated and added quadruple: {quadruple}")
         else:
             quadruple = [operator, operand1, operand2, result]
-            print(f"-> Generated quadruple: {quadruple}")
+            # print(f"-> Generated quadruple: {quadruple}")
         return quadruple
 
 

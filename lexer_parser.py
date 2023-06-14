@@ -156,219 +156,233 @@ precedence = (
 
 # program
 def p_program(p):
-    """program : PROGRAM ID SEMICOLON goto_main var_dec save_vars_in_fd func_dec solve_main_quad main"""
+    '''program : PROGRAM ID SEMICOLON goto_main var_dec save_vars_in_fd func_dec solve_main_quad main'''
     p[0] = tuple[1:]
-    print("Got to program")
+    # print("Got to program")
 
     # main
 def p_main(p):
-    """main : MAIN LP RP block SEMICOLON"""
-    print("Got into main")
+    '''main : MAIN LP RP block SEMICOLON'''
+    # print("Got into main")
 
 # block
 def p_block(p):
-    """block : LBR statute statute1 RBR """
-    print("Found a block")
+    '''block : LBR statute statute1 RBR '''
+    # print("Found a block")
 
 # func_dec
 def p_func_dec(p):
-    """func_dec : FUNC return_type ID save_id save_func push_scope LP param_opt save_params_in_fd RP func_block pop_scope func_dec
-    | empty"""
-    print("Function declared")
+    '''func_dec : FUNC return_type ID save_id save_func push_scope LP param_opt save_params_in_fd RP func_block pop_scope func_dec
+    | empty'''
+    # print("Function declared")
 
 # param_opt
 def p_param_opt(p):
-    """param_opt : type_simple save_type ID save_id save_operand_1 save_params more_param_opt"""
-    print("Got to param_opt")
+    '''param_opt : type_simple save_type ID save_id save_operand_1 save_params more_param_opt'''
+    # print("Got to param_opt")
 
 # more_param_opt
 def p_more_param_opt(p):
-    """more_param_opt : COMMA param_opt
-    | empty"""
-    print("Got to more_param_opt")
+    '''more_param_opt : COMMA param_opt
+    | empty'''
+    # print("Got to more_param_opt")
 
 # var_dec
 def p_var_dec(p):
-    """ var_dec : type_simple ID save_id save_var dim SEMICOLON var_dec
+    ''' var_dec : type_simple ID save_id save_var dim SEMICOLON var_dec
     | type_complex ID complex_dec SEMICOLON var_dec
     | empty
-    """
+    '''
     p[0] = tuple(p[1:])
-    print("Declared a variable")
+    # print("Declared a variable")
 
 # complex_dec
 def p_complex_dec(p):
-    """
+    '''
     complex_dec : COMMA ID complex_dec
     | empty
-    """
+    '''
     # print("Declared another complex type")
 
 # dim
 def p_dim(p):
-    """dim : LSB CONST_INT RSB
+    '''dim : LSB CONST_INT RSB
     | LSB CONST_INT RSB LSB CONST_INT RSB
-    | empty"""
+    | empty'''
     # print("Dimensions while declaring variable")
 
 # return_type
 def p_return_type(p):
-    """return_type : type_simple
-    | VOID save_type"""
+    '''return_type : type_simple
+    | VOID save_type'''
     p[0] = p[1]
     #print("Returning a simple type or void")
 
 # type_simple
 def p_type_simple(p):
-    """type_simple : INT save_type
+    '''type_simple : INT save_type
     | FLOAT save_type
-    | CHAR save_type"""
+    | CHAR save_type'''
     p[0] = p[1]
 #    print("Found a simple type")
 
 # type_complex
 def p_type_complex(p):
-    """type_complex : DATAFRAME"""
+    '''type_complex : DATAFRAME'''
     # print("Found a dataframe")
 
 # assignation
 def p_assignation(p):
-    """assignation : var assignation_var ASSIGN exp_or_func_assignation"""
+    '''assignation : var assignation_var ASSIGN exp_or_func_assignation'''
     p[0] = tuple(p[1:])
     # print("Assignation")
 
 # exp_or_func_assignation
 def p_exp_or_func_assignation(p):
-    """exp_or_func_assignation : expression_assignation
-    | func_call assign_func"""
+    '''exp_or_func_assignation : expression_assignation
+    | func_call assign_func'''
     p[0] = tuple(p[1:])
     # print("Assignation of exp or function call")
 
 # expression_assignation
 def p_expression_assignation(p):
-    """expression_assignation : exp normal_assign SEMICOLON"""
+    '''expression_assignation : exp normal_assign SEMICOLON'''
+    p[0] = tuple(p[1:])
     # print("Assignation of exp")
 
 # var
 def p_var(p):
-    """var : ID exp_dim_opt"""
+    '''var : ID exp_dim_opt'''
     p[0] = p[1]
     # print("Variable use")
 
 # Exp_dim_opt
 def p_exp_dim_opt(p):
-    """exp_dim_opt : LSB exp RSB
+    '''exp_dim_opt : LSB exp RSB
     | LSB exp RSB LSB exp RSB
-    | empty"""
+    | empty'''
     # print("Dimensions when using variable")
 
 # if_statement
 def p_if_statement(p):
-    """if_statement : IF LP super_exp RP create_gotof block else update_pending_jump_1"""
+    '''if_statement : IF LP super_exp RP create_gotof block else update_pending_jump_1'''
+    p[0] = tuple(p[1:])
     # print("If statement")
 
 # else
 def p_else(p):
-    """else : create_goto ELSE block
-    | empty"""
+    '''else : create_goto ELSE block
+    | empty'''
+    p[0] = tuple(p[1:])
     # print("Else statement")
 
 # while_statement
 def p_while_statement(p):
-    """while_statement : WHILE LP super_exp RP create_gotof_while block update_pending_jump_while"""
+    '''while_statement : WHILE LP super_exp RP create_gotof_while block update_pending_jump_while'''
+    p[0] = tuple(p[1:])
     # print("While statement")
 
 # read statement
 def p_read(p):
-    """read : READ LP var read_quad RP SEMICOLON"""
+    '''read : READ LP var read_quad RP SEMICOLON'''
+    p[0] = tuple(p[1:])
     # print("Read something")
 
 # print statement
 def p_print(p):
-    """print : PRINT LP CONST_STRING print_quad RP SEMICOLON
-    | PRINT LP exp print_quad RP SEMICOLON"""
+    '''print : PRINT LP CONST_STRING print_quad RP SEMICOLON
+    | PRINT LP exp print_quad RP SEMICOLON'''
+    p[0] = tuple(p[1:])
     # print("Prints something")
  
 # constants
 def p_constants(p):
-    """constants : CONST_INT current_type_is_int
+    '''constants : CONST_INT current_type_is_int
     | CONST_FLOAT current_type_is_float
-    | CONST_CHAR current_type_is_char"""
+    | CONST_CHAR current_type_is_char'''
     # print("This are constants")
     p[0] = p[1]
 
 # func_call
 def p_func_call(p):
-    """func_call : ID set_return_quad LP opt_args assign_params RP assign_gosub SEMICOLON"""
+    '''func_call : ID set_return_quad LP opt_args assign_params RP assign_gosub SEMICOLON'''
     p[0] = tuple(p[1:])
     # print("Function called")
 
 # opt_args
 def p_opt_args(p):
     '''opt_args : exp save_params exp_args_more'''
+    p[0] = tuple(p[1:])
     # print("Arguments for a function call")
 
 # exp_args_more
 def p_exp_args_more(p):
-    """exp_args_more : COMMA opt_args
-    | empty"""
+    '''exp_args_more : COMMA opt_args
+    | empty'''
+    p[0] = p[1]
     # print("More arguments for a function call")
 
 # statements
 def p_statements(p):
-    """statements : assignation
+    '''statements : assignation
     | if_statement
     | while_statement
     | read
     | func_call
     | return
     | print
-    | data_funcs"""
+    | data_funcs'''
+    p[0] = p[1]
     # print("Called a statement")
 
 def p_data_funcs(p):
-    """data_funcs : mean
+    '''data_funcs : mean
     | median
     | mode
     | std
     | variance
     | hist
     | plot
-    | sctplot"""
+    | sctplot'''
     p[0] = p[1]
     # print("Found a data function")
 
 #statute1
 def p_statute1(p):
-    """statute1 : statute statute1
-    | empty"""
+    '''statute1 : statute statute1
+    | empty'''
+    p[0] = p[1]
     # print("Jumped to statute1")
 
 #statute
 def p_statute(p):
-    """statute : statements statute1
-    | empty"""
+    '''statute : statements statute1
+    | empty'''
+    p[0] = p[1]
     # print("Found a statute")
 
 # func_block
 def p_func_block(p):
-    """ func_block : LBR var_dec save_vars_in_fd statute set_endfunc_quad RBR """
-    print("Inside function block")
+    ''' func_block : LBR var_dec save_vars_in_fd statute set_endfunc_quad RBR '''
+    p[0] = tuple(p[1:])
+    # print("Inside function block")
 
 # return
 def p_return(p):
-    """ return : RETURN LP exp set_return_stmt RP SEMICOLON """
-    print("Returns something")
+    ''' return : RETURN LP exp set_return_stmt RP SEMICOLON '''
+    p[0] = tuple(p[1:])
+    # print("Returns something")
 
 # super_exp
 def p_super_exp(p):
-    """ super_exp : exp relop push_op exp check_relop_stack
+    ''' super_exp : exp relop push_op exp check_relop_stack
     | exp
-    """
-    print("Found a super_exp")
+    '''
+    p[0] = tuple(p[1:])
+    # print("Found a super_exp")
 
 def p_relop(p):
-    """ relop : EQ
+    ''' relop : EQ
     | GE 
     | LE 
     | GT 
@@ -376,84 +390,84 @@ def p_relop(p):
     | NEQ 
     | AND
     | OR
-    """
+    '''
     p[0] = p[1]
 
 def p_exp(p):
-    """ exp : term check_stack_exp PLUS push_op exp
+    ''' exp : term check_stack_exp PLUS push_op exp
             | term check_stack_exp MINUS push_op exp
             | term check_stack_exp
-    """
+    '''
     p[0] = tuple(p[1:])
-    print("Found an exp")
+    # print("Found an exp")
 
 def p_term(p):
-    """term : factor check_stack_term MULT push_op term
+    '''term : factor check_stack_term MULT push_op term
             | factor check_stack_term DIV push_op term
             | factor check_stack_term
-    """
+    '''
     p[0] = tuple(p[1:])
-    print("Found a term")
+    # print("Found a term")
 
 def p_factor(p):
-    """factor : LP push_op super_exp RP pop_op save_operand
+    '''factor : LP push_op super_exp RP pop_op save_operand
     | constants save_operand
     | var save_operand
     | func_call save_call_operand
-    """
+    '''
     p[0] = tuple(p[1:])
-    print("Found a factor")
+    # print("Found a factor")
 
 def p_mean(p):
-    """ mean : MEAN LP complex_var RP SEMICOLON """
+    ''' mean : MEAN LP complex_var RP SEMICOLON '''
     # Code to handle the mean calculation
     # print("Mean")
 
 def p_mode(p):
-    """ mode : MODE LP complex_var RP SEMICOLON """
+    ''' mode : MODE LP complex_var RP SEMICOLON '''
     # Code to handle the mode calculation
     # print("Mode")
 
 def p_median(p):
-    """ median : MEDIAN LP complex_var RP SEMICOLON """
+    ''' median : MEDIAN LP complex_var RP SEMICOLON '''
     # Code to handle the median calculation
     # print("Median")
 
 def p_std(p):
-    """ std : STD LP complex_var RP SEMICOLON """
+    ''' std : STD LP complex_var RP SEMICOLON '''
     # Code to handle the standard deviation calculation
     # print("Standar Deviation")
 
 def p_variance(p):
-    """ variance : VARIANCE LP complex_var RP SEMICOLON """
+    ''' variance : VARIANCE LP complex_var RP SEMICOLON '''
     # Code to handle the variance calculation
     # print("Variance")
 
 def p_hist(p):
-    """ hist : HIST LP complex_var RP SEMICOLON """
+    ''' hist : HIST LP complex_var RP SEMICOLON '''
     # Code to handle the histogram generation
     # print("Histogram")
 
 def p_plot(p):
-    """ plot : PLOT LP complex_var RP SEMICOLON """
+    ''' plot : PLOT LP complex_var RP SEMICOLON '''
     # Code to handle the plot generation
     # print("Plot")
 
 def p_sctplot(p):
-    """ sctplot : SCTPLOT LP complex_var RP SEMICOLON """
+    ''' sctplot : SCTPLOT LP complex_var RP SEMICOLON '''
     # Code to handle the scatter plot generation
     # print("Scatterplot")
 
 # Complex variable use
 def p_complex_var(p):
-    """ complex_var : ID
-    | ID PERIOD"""
+    ''' complex_var : ID
+    | ID PERIOD'''
     # Code to handle complex variable reference
     # print("Complex var use")
 
 # epsilon
 def p_empty(p):
-    """ empty : """
+    ''' empty : '''
     pass
 #    print("Got to an empty production")
 
@@ -506,7 +520,7 @@ def p_save_id(p):
     save_id :
     '''
     st = SymbolTable.get()
-    print("The id is:", p[-1])
+    # print("The id is:", p[-1])
     st.setCurrId(p[-1])
 
 def p_save_type(p):
@@ -514,7 +528,7 @@ def p_save_type(p):
     save_type : 
     '''
     st = SymbolTable.get()
-    print("The type is:", p[-1])
+    # print("The type is:", p[-1])
     st.setCurrType(p[-1])
 
 def p_save_var(p):
@@ -620,34 +634,34 @@ def p_current_type_is_char(p):
     mem.addConstant(st.currentId(), 'char')
 
 def p_create_goto(p):
-    """create_goto : update_pending_jump"""
+    '''create_goto : update_pending_jump'''
     qg = QuadrupleGen.get()
     createGotoQuadIf(qg)
 
 def p_create_gotof(p):
-    """create_gotof : """
+    '''create_gotof : '''
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
     createGotoFQuadIf(st, qg)
 
 def p_update_pending_jump(p):
-    """update_pending_jump : """
+    '''update_pending_jump : '''
     qg = QuadrupleGen.get()
     updatePendingJumpIf(qg)
 
 def p_update_pending_jump_1(p):
-    """update_pending_jump_1 : """
+    '''update_pending_jump_1 : '''
     qg = QuadrupleGen.get()
     updatePendingJumpIf(qg)
 
 def p_create_gotof_while(p):
-    """create_gotof_while : """
+    '''create_gotof_while : '''
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
     createGotoFQuadWhile(st, qg)
 
 def p_update_pending_jump_while(p):
-    """update_pending_jump_while : """
+    '''update_pending_jump_while : '''
     qg = QuadrupleGen.get()
     updatePendingJumpWhile(qg)
 
@@ -700,13 +714,12 @@ def p_set_return_quad(p):
     qg = QuadrupleGen.get()
     st = SymbolTable.get()
     funcId = p[-1]
-    st.pushNewScope()
     gosubJump = qg.generateQuadruple('GOSUB', '', '', funcId, False)
     qg.addPendingJump(gosubJump)
     st.resetCurrentParams() # To clear params
     # Saves function name in new params, pushes a false bottom then creates the ERA quadruple
     st.currentParams().append(funcId)
-    # st.operators().push('(')
+    #st.operators().push('(')
     qg.generateQuadruple('ERA', '', '', funcId)
 
 
@@ -725,6 +738,7 @@ def p_assign_params(p):
     '''
     st = SymbolTable.get()
     qg = QuadrupleGen.get()
+    # For functions without params
     try:
         st.operators().pop()
     except Exception:
@@ -774,11 +788,11 @@ def p_pop_scope(p):
 
 # Error rule for syntax errors
 def p_error(p):
-    print("FAIL")
     if p:
         print(f"Syntax error at line {p.lineno}, column {p.lexpos}")
+        exit(1)
     else:
-        print("Syntax error: Unexpected end of file")
+        pass
 
 
 # Build lexer and parser
