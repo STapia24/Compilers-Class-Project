@@ -1,6 +1,6 @@
 # This is the file that runs the compiler 
 
-from Lexer_parser import lexer, parser
+from lexer_parser import lexer, parser
 from Structures.QuadrupleGen import QuadrupleGen
 from Structures.VirtualMachine import VirtualMachine
 import time
