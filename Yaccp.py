@@ -40,8 +40,8 @@ except Exception as exception:
     print(f'Semantic error: {exception.args[0]}\n')
     exit(1)
 
-#qg = QuadrupleGen.get()
-#qg.printQuadruples()
+qg = QuadrupleGen.get()
+qg.printQuadruples()
 
 try:
     vm = VirtualMachine.get()

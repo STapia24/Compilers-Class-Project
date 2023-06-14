@@ -255,4 +255,4 @@ def checkTypes(leftOp, rightOp, operator):
             return res
         except Exception as err:
             raise Exception(
-                f'ERROR: Operands might not exist.\nLeft op type: {leftOp}\nRight op type: {rightOp}\nOperator: {operator}\nError: {err}')
+                f'ERROR: Operands missing \nLeft op type: {leftOp}\nRight op type: {rightOp}\nOperator: {operator}\nError: {err}')

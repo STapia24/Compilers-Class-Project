@@ -190,7 +190,6 @@ def p_more_param_opt(p):
 # var_dec
 def p_var_dec(p):
     ''' var_dec : type_simple ID save_id save_var dim SEMICOLON var_dec
-    | type_complex ID complex_dec SEMICOLON var_dec
     | empty
     '''
     p[0] = tuple(p[1:])
@@ -207,8 +206,8 @@ def p_complex_dec(p):
 # dim
 def p_dim(p):
     '''dim : LSB CONST_INT RSB
-    | LSB CONST_INT RSB LSB CONST_INT RSB
     | empty'''
+    p[0] = tuple(p[1:])
     # print("Dimensions while declaring variable")
 
 # return_type
@@ -259,7 +258,6 @@ def p_var(p):
 # Exp_dim_opt
 def p_exp_dim_opt(p):
     '''exp_dim_opt : LSB exp RSB
-    | LSB exp RSB LSB exp RSB
     | empty'''
     # print("Dimensions when using variable")
 

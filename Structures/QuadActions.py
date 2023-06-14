@@ -136,7 +136,7 @@ def createGotoFQuadIf(st, qg):
     resultingType = st.opTypes().pop()
     if resultingType != 'bool':
         raise Exception(
-            f'ERROR: Type mismatch during if condition evaluation, expected bool, recieved: {resultingType}')
+            f'ERROR: Type mismatch during \'if\' condition evaluation, expected bool, recieved: {resultingType}')
     
     # Generate gotof quad
     gotofQuad = qg.generateQuadruple('gotof', st.operands().pop(), '', '')
@@ -174,7 +174,7 @@ def whileStatementActions(st, qg):
     resultingType = st.opTypes().pop()
     if resultingType != 'bool':
         raise Exception(
-            f'ERROR: Type mismatch during if statement evaluation, expected bool, recieved: {resultingType}')
+            f'ERROR: Type mismatch during \'while\' statement evaluation, expected bool, recieved: {resultingType}')
     
     else:
         gotofQuad = qg.generateQuadruple('gotof', st.operands().pop(), '', '')
@@ -186,7 +186,7 @@ def createGotoFQuadWhile(st, qg):
     resultingType = st.opTypes().pop()
     if resultingType != 'bool':
         raise Exception(
-            f'ERROR: Type mismatch during while condition evaluation, expected bool, recieved: {resultingType}')
+            f'ERROR: Type mismatch during \'while\' condition evaluation, expected bool, recieved: {resultingType}')
     
     # Generate gotof quad
     gotofQuad = qg.generateQuadruple('gotof', st.operands().pop(), '', '')

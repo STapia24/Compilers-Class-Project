@@ -53,9 +53,6 @@ def popOp(st, op):
 
 class Stack:
 
-    def get_second(self):
-        return self.__stack[-2]
-
     def __init__(self):
         self.__stack = []
 
